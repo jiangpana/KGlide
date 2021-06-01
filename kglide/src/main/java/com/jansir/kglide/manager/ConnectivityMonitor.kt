@@ -1,7 +1,7 @@
 package com.jansir.kglide.manager
 
 
-interface ConnectivityMonitor :Lifecycle{
+interface ConnectivityMonitor :LifecycleListener{
     interface ConnectivityListener{
         fun onConnectivityChanged(isConnected :Boolean)
     }
