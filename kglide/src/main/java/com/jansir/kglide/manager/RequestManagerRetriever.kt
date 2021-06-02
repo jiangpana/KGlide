@@ -85,7 +85,7 @@ class RequestManagerRetriever : Handler.Callback {
 
     fun get(activity: FragmentActivity): RequestManager {
         if (!isOnMainThread()) {
-            return get(activity.getApplicationContext())
+            return get(activity.applicationContext)
         } else {
             val fm = activity.supportFragmentManager
             return supportFragmentGet(activity, fm, null, activity.isActivityVisible())

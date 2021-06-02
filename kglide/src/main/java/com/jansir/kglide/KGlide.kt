@@ -1,9 +1,26 @@
 package com.jansir.kglide
 
 import android.content.Context
+import androidx.fragment.app.FragmentActivity
+import com.jansir.kglide.load.engine.Engine
+import com.jansir.kglide.load.engine.bitmap_recycle.ArrayPool
+import com.jansir.kglide.load.engine.bitmap_recycle.BitmapPool
+import com.jansir.kglide.load.engine.cache.MemoryCache
+import com.jansir.kglide.manager.ConnectivityMonitorFactory
+import com.jansir.kglide.manager.RequestManagerRetriever
+import com.jansir.kglide.request.RequestOptions
 
 
-internal class KGlide {
+class KGlide(
+    val context: Context,
+    val engine: Engine,
+    val memoryCache: MemoryCache,
+    val requestManagerRetriever: RequestManagerRetriever,
+    val connectivityMonitorFactory: ConnectivityMonitorFactory,
+    val bitmapPool: BitmapPool,
+    val arrayPool: ArrayPool,
+    val requestOptionsFactory: RequestOptionsFactory
+) {
 
     companion object {
         private var instance: KGlide? = null
@@ -20,11 +37,20 @@ internal class KGlide {
             return instance!!
         }
 
+        fun with(activity: FragmentActivity): RequestManager {
+            return get(activity).requestManagerRetriever.get(activity)
+        }
+
         private fun checkAndInitializeGlide(context: Context) {
             val builder = KGlideBuilder()
-
-            instance = builder.build()
+            instance = builder.build(context)
         }
     }
 
+
+    /** Creates a new instance of [RequestOptions].  */
+    interface RequestOptionsFactory {
+        /** Returns a non-null [RequestOptions] object.  */
+        fun build(): RequestOptions
+    }
 }
