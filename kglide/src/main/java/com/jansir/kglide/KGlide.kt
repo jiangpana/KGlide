@@ -21,6 +21,13 @@ class KGlide(
     val arrayPool: ArrayPool,
     val requestOptionsFactory: RequestOptionsFactory
 ) {
+    private  var glideContext: GlideContext
+    init {
+        glideContext = GlideContext(context)
+    }
+    fun getGlideContext(): GlideContext {
+        return glideContext
+    }
 
     companion object {
         private var instance: KGlide? = null
