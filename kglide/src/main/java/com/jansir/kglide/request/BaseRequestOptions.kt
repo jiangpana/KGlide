@@ -31,6 +31,8 @@ abstract class BaseRequestOptions<T : BaseRequestOptions<T>> {
     private val overrideWidth: Int = UNSET
     private var isTransformationAllowed = true
 
+    fun getOverrideHeight()=overrideHeight
+    fun getOverrideWidth()=overrideWidth
     fun isTransformationSet(): Boolean {
         return fields.isSet(TRANSFORMATION)
     }
@@ -39,4 +41,8 @@ abstract class BaseRequestOptions<T : BaseRequestOptions<T>> {
         return isTransformationAllowed
     }
 
+    /**
+     * 酒入豪肠月成霜 半生仗剑在他乡
+     * 飞扬跋扈藐权贵 才盖古今压盛唐
+     */
 }

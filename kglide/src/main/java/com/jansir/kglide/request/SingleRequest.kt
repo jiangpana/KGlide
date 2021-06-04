@@ -9,27 +9,61 @@ import com.jansir.kglide.request.target.Target
 import com.jansir.kglide.request.transition.TransitionFactory
 import java.util.concurrent.Executor
 
-private class SingleRequest<R>(
+class SingleRequest<R> private constructor(
     val context: Context,
     glideContext: GlideContext,
     model: Any, transcode: Class<R>, requestOptions: BaseRequestOptions<*>,
-    overrideWidth:Int, overrideHeight:Int,priority: Priority,
+    overrideWidth: Int, overrideHeight: Int, priority: Priority,
     target: Target<R>,
-    targetListener:RequestListener<R>?=null,
-    requestListeners:List<RequestListener<R>>?=null,
-            requestCoordinator: RequestCoordinator,
+    targetListener: RequestListener<R>? = null,
+    requestListeners: List<RequestListener<R>>? = null,
+    requestCoordinator: RequestCoordinator? = null,
     engine: Engine,
-    animationFactory: TransitionFactory<in R>,
-    callbackExecutor:Executor
-    ) : Request, SizeReadyCallback {
+    animationFactory: TransitionFactory<R>? = null,
+    callbackExecutor: Executor
+) : Request, SizeReadyCallback {
     private val requestLock: Any = Any()
     private var status: Status = Status.PENDING
 
-    companion object{
-       /* fun <R> obtain():SingleRequest<R>{
+    companion object {
+        fun <R> obtain(
+            context: Context,
+            glideContext: GlideContext,
+            model: Any,
+            transcode: Class<R>,
+            requestOptions: BaseRequestOptions<*>,
+            overrideWidth: Int,
+            overrideHeight: Int,
+            priority: Priority,
+            target: Target<R>,
+            targetListener: RequestListener<R>? = null,
+            requestListeners: List<RequestListener<R>>? = null,
+            requestCoordinator: RequestCoordinator? = null,
+            engine: Engine,
+            animationFactory: TransitionFactory<R>? = null,
+            callbackExecutor: Executor
+        ): SingleRequest<R> {
+            return SingleRequest(
+                context,
+                glideContext,
+                model,
+                transcode,
+                requestOptions,
+                overrideWidth,
+                overrideHeight,
+                priority,
+                target,
+                targetListener,
+                requestListeners,
+                requestCoordinator,
+                engine,
+                animationFactory,
+                callbackExecutor
+            )
 
-        }*/
+        }
     }
+
     sealed class Status {
         object PENDING : Status()
         object RUNNING : Status()

@@ -6,14 +6,17 @@ import com.jansir.kglide.ext.isOnMainThread
 import com.jansir.kglide.request.BaseRequestOptions
 import com.jansir.kglide.request.Request
 import com.jansir.kglide.request.RequestListener
+import com.jansir.kglide.request.SingleRequest
 import com.jansir.kglide.request.target.Target
 import com.jansir.kglide.request.target.ViewTarget
 import com.jansir.kglide.util.Executors
 import java.util.concurrent.Executor
 
 class RequestBuilder<TranscodeType>(
-    kGlide: KGlide,
-    requestManager: RequestManager, val transcodeClass: Class<TranscodeType>, context: Context
+    val kGlide: KGlide,
+    val requestManager: RequestManager,
+    val transcodeClass: Class<TranscodeType>,
+    val context: Context
 ) : BaseRequestOptions<RequestBuilder<TranscodeType>>(),
     ModelTypes<RequestBuilder<TranscodeType>> {
 
@@ -28,7 +31,7 @@ class RequestBuilder<TranscodeType>(
     }
 
     fun into(view: ImageView): ViewTarget<ImageView, TranscodeType> {
-        require(isOnMainThread()){"must load on main thread"}
+        require(isOnMainThread()) { "must load on main thread" }
         val requestOptions: BaseRequestOptions<*> = this
         if (!requestOptions.isTransformationSet() && requestOptions.isTransformationAllowed()
             && view.scaleType != null
@@ -60,16 +63,32 @@ class RequestBuilder<TranscodeType>(
         callbackExecutor: Executor
     ): Y {
         require(isModelSet) { "You must call #load() before calling #into()" }
-//        val request = buildRequest(target, targetListener, options, callbackExecutor);
+        val request = buildRequest(target, targetListener, options, callbackExecutor);
         return target
     }
 
-  /*  private fun <Y> buildRequest(
-        target: Y,
+    private fun buildRequest(
+        target: Target<TranscodeType>,
         targetListener: RequestListener<TranscodeType>?,
-        options: BaseRequestOptions<*>,
+        requestOptions: BaseRequestOptions<*>,
         callbackExecutor: Executor
     ): Request {
-        return SingleRequest
-    }*/
+        return SingleRequest.obtain(
+            context,
+            glideContext,
+            model,
+            transcodeClass,
+            requestOptions,
+            requestOptions.getOverrideHeight(),
+            requestOptions.getOverrideHeight(),
+            Priority.NORMAL,
+            target,
+            targetListener,
+            null,
+            null,
+            kGlide.engine,
+            null,
+            callbackExecutor
+        )
+    }
 }
