@@ -14,9 +14,15 @@ class Executors {
                 }
             }
 
+        private val DIRECT_EXECUTOR =
+            Executor { command -> command.run() }
 
         fun mainThreadExecutor(): Executor {
             return MAIN_THREAD_EXECUTOR
+        }
+
+        fun directExecutor(): Executor {
+            return DIRECT_EXECUTOR
         }
     }
 

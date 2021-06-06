@@ -1,6 +1,11 @@
 package com.jansir.kglide.request
 
 import com.jansir.kglide.ext.isSet
+import com.jansir.kglide.load.Key
+import com.jansir.kglide.load.Options
+import com.jansir.kglide.load.Transformation
+import com.jansir.kglide.load.engine.DiskCacheStrategy
+import com.jansir.kglide.signature.EmptySignature
 
 abstract class BaseRequestOptions<T : BaseRequestOptions<T>> {
     private val UNSET = -1
@@ -31,8 +36,8 @@ abstract class BaseRequestOptions<T : BaseRequestOptions<T>> {
     private val overrideWidth: Int = UNSET
     private var isTransformationAllowed = true
 
-    fun getOverrideHeight()=overrideHeight
-    fun getOverrideWidth()=overrideWidth
+    fun getOverrideHeight() = overrideHeight
+    fun getOverrideWidth() = overrideWidth
     fun isTransformationSet(): Boolean {
         return fields.isSet(TRANSFORMATION)
     }
@@ -40,6 +45,52 @@ abstract class BaseRequestOptions<T : BaseRequestOptions<T>> {
     fun isTransformationAllowed(): Boolean {
         return isTransformationAllowed
     }
+
+    fun getSignature(): Key {
+        return EmptySignature.obtain()
+    }
+
+    private var resourceClass = Any::class.java
+    fun getResourceClass(): Class<*> {
+        return resourceClass
+    }
+
+    fun getDiskCacheStrategy(): DiskCacheStrategy {
+        return DiskCacheStrategy.AUTOMATIC
+    }
+
+    fun getTransformations(): Map<Class<*>, Transformation<*>>? {
+        return null
+    }
+
+    fun isTransformationRequired(): Boolean {
+        return true
+    }
+
+    fun isScaleOnlyOrNoTransform(): Boolean {
+        return true
+    }
+
+    fun getOptions(): Options? {
+        return null
+    }
+
+    fun isMemoryCacheable(): Boolean {
+        return true
+    }
+
+    fun getUseUnlimitedSourceGeneratorsPool(): Boolean {
+        return true
+    }
+
+    fun getUseAnimationPool(): Boolean {
+        return true
+    }
+
+    fun getOnlyRetrieveFromCache(): Boolean {
+        return return true
+    }
+
 
     /**
      * 酒入豪肠月成霜 半生仗剑在他乡

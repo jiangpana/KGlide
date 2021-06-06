@@ -7,7 +7,7 @@ interface DiskCache {
     /** An interface for lazily creating a disk cache.  */
     interface Factory {
         /** Returns a new disk cache, or `null` if no disk cache could be created.  */
-        fun build(): DiskCache?
+        fun build(): DiskCache
 
         companion object {
             /** 250 MB of cache.  */

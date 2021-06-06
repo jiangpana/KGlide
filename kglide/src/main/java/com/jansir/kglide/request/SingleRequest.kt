@@ -1,36 +1,42 @@
 package com.jansir.kglide.request
 
 import android.content.Context
+import android.util.Log
 import com.jansir.kglide.GlideContext
 import com.jansir.kglide.Priority
+import com.jansir.kglide.load.DataSource
 import com.jansir.kglide.load.engine.Engine
+import com.jansir.kglide.load.engine.Resource
 import com.jansir.kglide.request.target.SizeReadyCallback
 import com.jansir.kglide.request.target.Target
+import com.jansir.kglide.request.target.Target.Companion.SIZE_ORIGINAL
 import com.jansir.kglide.request.transition.TransitionFactory
 import java.util.concurrent.Executor
 
 class SingleRequest<R> private constructor(
     val context: Context,
-    glideContext: GlideContext,
-    model: Any, transcode: Class<R>, requestOptions: BaseRequestOptions<*>,
-    overrideWidth: Int, overrideHeight: Int, priority: Priority,
-    target: Target<R>,
-    targetListener: RequestListener<R>? = null,
-    requestListeners: List<RequestListener<R>>? = null,
-    requestCoordinator: RequestCoordinator? = null,
-    engine: Engine,
-    animationFactory: TransitionFactory<R>? = null,
-    callbackExecutor: Executor
-) : Request, SizeReadyCallback {
+    val glideContext: GlideContext,
+    val model: Any, val transcodeClass: Class<R>, val requestOptions: BaseRequestOptions<*>,
+    val overrideWidth: Int, val overrideHeight: Int, val priority: Priority,
+    val target: Target<R>,
+    val targetListener: RequestListener<R>? = null,
+    val requestListeners: List<RequestListener<R>>? = null,
+    val requestCoordinator: RequestCoordinator? = null,
+    val engine: Engine,
+    val animationFactory: TransitionFactory<R>? = null,
+    val callbackExecutor: Executor
+) : Request, SizeReadyCallback,ResourceCallback {
+
     private val requestLock: Any = Any()
     private var status: Status = Status.PENDING
+    private var loadStatus: Engine.LoadStatus? = null
 
     companion object {
         fun <R> obtain(
             context: Context,
             glideContext: GlideContext,
             model: Any,
-            transcode: Class<R>,
+            transcodeClass: Class<R>,
             requestOptions: BaseRequestOptions<*>,
             overrideWidth: Int,
             overrideHeight: Int,
@@ -47,7 +53,7 @@ class SingleRequest<R> private constructor(
                 context,
                 glideContext,
                 model,
-                transcode,
+                transcodeClass,
                 requestOptions,
                 overrideWidth,
                 overrideHeight,
@@ -73,7 +79,33 @@ class SingleRequest<R> private constructor(
         object CLEARED : Status()
     }
 
+    private var width = 0
+    private var height = 0
     override fun begin() {
+        if (model == null) {
+            if (isValidDimensions(overrideWidth, overrideHeight)) {
+                width = overrideWidth
+                height = overrideHeight
+            }
+            onLoadFailed(Exception("Received null model"), Log.WARN)
+            return
+        }
+
+    }
+
+    private fun onLoadFailed(exception: Exception, logLevel: Int) {
+        synchronized(requestLock) {
+
+        }
+    }
+
+    private fun isValidDimensions(width: Int, height: Int): Boolean {
+        return isValidDimension(width) && isValidDimension(height)
+    }
+
+    private fun isValidDimension(dimen: Int): Boolean {
+        return dimen > 0 || dimen == SIZE_ORIGINAL
+
     }
 
     override fun clear() {
@@ -110,5 +142,38 @@ class SingleRequest<R> private constructor(
     }
 
     override fun onSizeReady(width: Int, height: Int) {
+        if (status != Status.WAITING_FOR_SIZE) {
+            return
+        }
+        status = Status.RUNNING
+        loadStatus = engine.load(
+            glideContext,
+            model,
+            requestOptions.getSignature(),
+            this.width,
+            this.height,
+            requestOptions.getResourceClass(),
+            transcodeClass,
+            priority,
+            requestOptions.getDiskCacheStrategy(),
+            requestOptions.getTransformations(),
+            requestOptions.isTransformationRequired(),
+            requestOptions.isScaleOnlyOrNoTransform(),
+            requestOptions.getOptions(),
+            requestOptions.isMemoryCacheable(),
+            requestOptions.getUseUnlimitedSourceGeneratorsPool(),
+            requestOptions.getUseAnimationPool(),
+            requestOptions.getOnlyRetrieveFromCache(),
+            this,
+            callbackExecutor
+        )
     }
+
+    override fun onResourceReady(resource: Resource<*>, dataSource: DataSource?) {
+    }
+
+    override fun onLoadFailed(e: Exception) {
+    }
+
+
 }
