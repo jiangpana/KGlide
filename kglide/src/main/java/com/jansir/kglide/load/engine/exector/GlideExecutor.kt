@@ -70,7 +70,7 @@ class GlideExecutor constructor(val delegate: ExecutorService) : ExecutorService
 
         /** Shortcut for calling [Builder.build] on [.newSourceBuilder].  */
         fun newSourceExecutor(): GlideExecutor {
-            return   Builder( /*preventNetworkOperations=*/
+            return  Builder( /*preventNetworkOperations=*/
                 false
             )
                 .setThreadCount(calculateBestThreadCount())

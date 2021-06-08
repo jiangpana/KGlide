@@ -4,7 +4,7 @@ import java.util.*
 
 class TargetTracker : LifecycleListener{
 
-
+    /*private val targets = Collections.newSetFromMap()*/
     override fun onStart() {
     }
 

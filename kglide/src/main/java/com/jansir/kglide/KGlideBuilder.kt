@@ -44,7 +44,7 @@ internal class KGlideBuilder {
             connectivityMonitorFactory = DefaultConnectivityMonitorFactory()
         }
         if (memoryCache == null) {
-            memoryCache = LruResourceCache()
+            memoryCache = LruResourceCache(100)
         }
         if (diskCacheFactory == null) {
             diskCacheFactory = InternalCacheDiskCacheFactory(context)
@@ -73,7 +73,6 @@ internal class KGlideBuilder {
             bitmapPool,
             arrayPool,
             defaultRequestOptionsFactory
-
         )
     }
 

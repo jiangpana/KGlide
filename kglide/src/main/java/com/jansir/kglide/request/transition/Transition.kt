@@ -5,7 +5,7 @@ import android.view.View
 
 interface Transition<in R>  {
     interface ViewAdapter {
-        val view: View?
+        val view: View
         val currentDrawable: Drawable?
         fun setDrawable(drawable: Drawable?)
     }

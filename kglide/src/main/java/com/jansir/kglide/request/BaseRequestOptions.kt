@@ -59,8 +59,8 @@ abstract class BaseRequestOptions<T : BaseRequestOptions<T>> {
         return DiskCacheStrategy.AUTOMATIC
     }
 
-    fun getTransformations(): Map<Class<*>, Transformation<*>>? {
-        return null
+    fun getTransformations(): Map<Class<*>, Transformation<*>> {
+        return emptyMap()
     }
 
     fun isTransformationRequired(): Boolean {
@@ -71,8 +71,8 @@ abstract class BaseRequestOptions<T : BaseRequestOptions<T>> {
         return true
     }
 
-    fun getOptions(): Options? {
-        return null
+    fun getOptions(): Options {
+        return Options()
     }
 
     fun isMemoryCacheable(): Boolean {
@@ -91,9 +91,9 @@ abstract class BaseRequestOptions<T : BaseRequestOptions<T>> {
         return return true
     }
 
+    private var sizeMultiplier = 1f
+    fun getSizeMultiplier(): Float {
+        return sizeMultiplier
+    }
 
-    /**
-     * 酒入豪肠月成霜 半生仗剑在他乡
-     * 飞扬跋扈藐权贵 才盖古今压盛唐
-     */
 }

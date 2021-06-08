@@ -12,10 +12,10 @@ import com.jansir.kglide.load.engine.cache.DiskCache
 class DecodeJob<R>(
     val diskCacheProvider: DiskCacheProvider,
     val pool: Pools.Pool<DecodeJob<*>>
-) : Runnable {
+) : Runnable, Comparable<DecodeJob<*>> {
     private var glideContext: GlideContext? = null
     private var signature: Key? = null
-    private var priority: Priority? = null
+    private lateinit var priority: Priority
     private var loadKey: EngineKey? = null
     private var width = 0
     private var height = 0
@@ -29,6 +29,7 @@ class DecodeJob<R>(
     private var onlyRetrieveFromCache = false
     private var model: Any? = null
     override fun run() {
+        println("DecodeJob #run")
     }
 
     interface DiskCacheProvider {
@@ -119,5 +120,13 @@ class DecodeJob<R>(
 
     fun release(b: Boolean) {
 
+    }
+
+    override fun compareTo(other: DecodeJob<*>): Int {
+        var result: Int = priority.ordinal - other.priority.ordinal
+        if (result == 0) {
+            result = order - other.order
+        }
+        return result
     }
 }

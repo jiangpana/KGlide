@@ -8,6 +8,8 @@ import com.jansir.kglide.ext.isOnMainThread
 import com.jansir.kglide.manager.Lifecycle
 import com.jansir.kglide.manager.LifecycleListener
 import com.jansir.kglide.manager.RequestManagerTreeNode
+import com.jansir.kglide.manager.TargetTracker
+import com.jansir.kglide.request.target.Target
 
 
 class RequestManager(
@@ -18,7 +20,7 @@ class RequestManager(
 ) : LifecycleListener, ModelTypes<RequestBuilder<Drawable>> {
     private val addSelfToLifecycle = Runnable { lifecycle.addListener(this@RequestManager) }
     private val mainHandler = Handler(Looper.getMainLooper())
-
+    private val targetTracker = TargetTracker()
     init {
         if (isOnMainThread()) {
             lifecycle.addListener(this)
@@ -48,5 +50,13 @@ class RequestManager(
             transcodeClass = Drawable::class.java,
             context = context
         )
+    }
+
+    fun clear(target:Target<*>){
+        untrackOrDelegate(target)
+    }
+
+    private fun untrackOrDelegate(target: Target<*>) {
+
     }
 }

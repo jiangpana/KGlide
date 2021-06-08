@@ -63,10 +63,10 @@ class Engine(
         transcodeClass: Class<R>,
         priority: Priority,
         diskCacheStrategy: DiskCacheStrategy,
-        transformations: Map<Class<*>, Transformation<*>>?,
+        transformations: Map<Class<*>, Transformation<*>>,
         isTransformationRequired: Boolean,
         isScaleOnlyOrNoTransform: Boolean,
-        options: Options?,
+        options: Options,
         isMemoryCacheable: Boolean,
         useUnlimitedSourceExecutorPool: Boolean,
         useAnimationPool: Boolean,
@@ -79,9 +79,9 @@ class Engine(
             signature,
             width,
             height,
-            transformations!!,
+            transformations,
             resourceClass,
-            transcodeClass, options!!
+            transcodeClass, options
         )
         var memoryResource: EngineResource<*>? = null
         synchronized(this) {

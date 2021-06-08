@@ -1,17 +1,20 @@
 package com.jansir.kglide.request
 
 import android.content.Context
+import android.graphics.drawable.Drawable
 import android.util.Log
 import com.jansir.kglide.GlideContext
 import com.jansir.kglide.Priority
 import com.jansir.kglide.load.DataSource
 import com.jansir.kglide.load.engine.Engine
 import com.jansir.kglide.load.engine.Resource
+import com.jansir.kglide.request.target.ImageViewTarget
 import com.jansir.kglide.request.target.SizeReadyCallback
 import com.jansir.kglide.request.target.Target
 import com.jansir.kglide.request.target.Target.Companion.SIZE_ORIGINAL
 import com.jansir.kglide.request.transition.TransitionFactory
 import java.util.concurrent.Executor
+import kotlin.math.roundToInt
 
 class SingleRequest<R> private constructor(
     val context: Context,
@@ -90,7 +93,25 @@ class SingleRequest<R> private constructor(
             onLoadFailed(Exception("Received null model"), Log.WARN)
             return
         }
+        status = Status.WAITING_FOR_SIZE
+        if(isValidDimensions(overrideWidth, overrideHeight)){
+            onSizeReady(overrideWidth,overrideHeight)
+        }else{
+            target.getSize(this)
+        }
+        if ((status == Status.RUNNING || status == Status.WAITING_FOR_SIZE)
+            && canNotifyStatusChanged()
+        ) {
+            target.onLoadStarted(getPlaceholderDrawable())
+        }
+    }
 
+    private fun getPlaceholderDrawable(): Drawable? {
+        return null
+    }
+
+    private fun canNotifyStatusChanged(): Boolean {
+        return true
     }
 
     private fun onLoadFailed(exception: Exception, logLevel: Int) {
@@ -145,6 +166,11 @@ class SingleRequest<R> private constructor(
         if (status != Status.WAITING_FOR_SIZE) {
             return
         }
+        println("onSizeReady ==${(target as ImageViewTarget<*>).view.id} width -> $width height ->$height")
+        val sizeMultiplier: Float = requestOptions.getSizeMultiplier()
+
+        this.width = maybeApplySizeMultiplier(width, sizeMultiplier)
+        this.height = maybeApplySizeMultiplier(height, sizeMultiplier)
         status = Status.RUNNING
         loadStatus = engine.load(
             glideContext,
@@ -167,6 +193,10 @@ class SingleRequest<R> private constructor(
             this,
             callbackExecutor
         )
+    }
+
+    private fun maybeApplySizeMultiplier(size: Int, sizeMultiplier: Float): Int {
+        return if (size == SIZE_ORIGINAL) size else (sizeMultiplier * size).roundToInt()
     }
 
     override fun onResourceReady(resource: Resource<*>, dataSource: DataSource?) {

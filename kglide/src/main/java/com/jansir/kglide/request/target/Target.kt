@@ -12,7 +12,7 @@ interface Target<R> : LifecycleListener {
     fun onLoadStarted(placeholder: Drawable?)
     fun onLoadFailed(errorDrawable: Drawable?)
     //泛型in 相当于 java 中 ? super
-    fun onResourceReady(resource: R, transition: Transition<in R?>?)
+    fun onResourceReady(resource: R, transition: Transition<R?>?)
     fun onLoadCleared(placeholder: Drawable?)
     fun getSize(cb: SizeReadyCallback)
     fun removeCallback(cb: SizeReadyCallback)
