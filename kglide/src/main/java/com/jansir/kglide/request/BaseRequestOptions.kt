@@ -87,8 +87,11 @@ abstract class BaseRequestOptions<T : BaseRequestOptions<T>> {
         return true
     }
 
+    /**
+     * 为true则不从源获取
+     */
     fun getOnlyRetrieveFromCache(): Boolean {
-        return return true
+         return false
     }
 
     private var sizeMultiplier = 1f

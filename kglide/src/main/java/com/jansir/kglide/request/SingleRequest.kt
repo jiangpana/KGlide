@@ -200,6 +200,7 @@ class SingleRequest<R> private constructor(
     }
 
     override fun onResourceReady(resource: Resource<*>, dataSource: DataSource?) {
+
     }
 
     override fun onLoadFailed(e: Exception) {

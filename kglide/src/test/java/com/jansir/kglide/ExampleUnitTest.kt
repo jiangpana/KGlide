@@ -10,7 +10,9 @@ import org.junit.Test
 class ExampleUnitTest {
     @Test
     fun addition_isCorrect() {
-
+        for (i in 0..100){
+            println((0..1).random())
+        }
     }
 
 }

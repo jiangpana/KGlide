@@ -7,30 +7,145 @@ import com.jansir.kglide.load.DataSource
 import com.jansir.kglide.load.Key
 import com.jansir.kglide.load.Options
 import com.jansir.kglide.load.Transformation
+import com.jansir.kglide.load.data.DataFetcher
 import com.jansir.kglide.load.engine.cache.DiskCache
 
 class DecodeJob<R>(
     val diskCacheProvider: DiskCacheProvider,
     val pool: Pools.Pool<DecodeJob<*>>
-) : Runnable, Comparable<DecodeJob<*>> {
+) : Runnable, Comparable<DecodeJob<*>>, DataFetcherGenerator.FetcherReadyCallback {
     private var glideContext: GlideContext? = null
     private var signature: Key? = null
     private lateinit var priority: Priority
     private var loadKey: EngineKey? = null
     private var width = 0
     private var height = 0
-    private var diskCacheStrategy: DiskCacheStrategy? = null
+    private lateinit var diskCacheStrategy: DiskCacheStrategy
     private var options: Options? = null
     private var callback: DecodeJob.Callback<R>? = null
     private var order = 0
-    private var stage: DecodeJob.Stage? = null
-    private var runReason: DecodeJob.RunReason? = null
+    private lateinit var stage: Stage
+    private var runReason = RunReason.INITIALIZE;
     private var startFetchTime: Long = 0
     private var onlyRetrieveFromCache = false
     private var model: Any? = null
+
     override fun run() {
-        println("DecodeJob #run")
+        println("DecodeJob #run . thread name ->${Thread.currentThread().name}")
+        val localFetcher = currentFetcher
+        try {
+            if (isCancelled) {
+                notifyFailed()
+                return
+            }
+            runWrapped()
+        } catch (e: Exception) {
+            throw e
+        } catch (t: Throwable) {
+            if (stage != Stage.ENCODE) {
+                notifyFailed()
+            }
+            if (!isCancelled) {
+                throw t
+            }
+        } finally {
+            localFetcher?.cleanup()
+        }
     }
+
+    private fun runWrapped() {
+        when (runReason) {
+            RunReason.INITIALIZE -> {
+                stage = getNextStage(Stage.INITIALIZE)
+                currentGenerator = getNextGenerator()
+                runGenerators()
+            }
+            RunReason.SWITCH_TO_SOURCE_SERVICE -> {
+
+            }
+            RunReason.DECODE_DATA -> {
+
+            }
+        }
+    }
+
+    private fun runGenerators() {
+        var isStarted = false
+        while (!isCancelled && currentGenerator != null && !(currentGenerator!!.startNext()
+                .apply { isStarted = this })
+        ) {
+            stage = getNextStage(stage)
+            currentGenerator = getNextGenerator()
+            if (stage == Stage.SOURCE) {
+                reschedule()
+                return
+            }
+        }
+        if ((stage==Stage.FINISHED || isCancelled)&&!isStarted){
+            notifyFailed()
+        }
+    }
+
+    private val decodeHelper: DecodeHelper<R> = DecodeHelper()
+
+    private fun getNextGenerator(): DataFetcherGenerator? {
+        return when (stage) {
+            Stage.RESOURCE_CACHE -> {
+                ResourceCacheGenerator(decodeHelper, this)
+            }
+            Stage.DATA_CACHE -> {
+                DataCacheGenerator(decodeHelper, this)
+            }
+            Stage.SOURCE -> {
+                SourceGenerator(decodeHelper, this)
+            }
+            Stage.FINISHED -> {
+                null
+            }
+            else -> throw IllegalStateException("Unrecognized stage: $stage")
+        }
+    }
+
+    private fun getNextStage(current: Stage): Stage {
+        return when (current) {
+            Stage.INITIALIZE -> {
+                if (diskCacheStrategy.decodeCachedResource()) Stage.RESOURCE_CACHE else getNextStage(
+                    Stage.RESOURCE_CACHE
+                )
+            }
+            Stage.RESOURCE_CACHE -> {
+                if (diskCacheStrategy.decodeCachedData()) Stage.DATA_CACHE else getNextStage(
+                    Stage.DATA_CACHE
+                )
+            }
+            Stage.DATA_CACHE -> {
+                return if (onlyRetrieveFromCache) Stage.FINISHED else Stage.SOURCE
+            }
+            Stage.SOURCE, Stage.FINISHED -> {
+                return Stage.FINISHED
+            }
+            else -> {
+                throw IllegalArgumentException("Unrecognized stage: $current")
+            }
+        }
+    }
+
+    private fun notifyFailed() {
+        callback!!.onLoadFailed(java.lang.Exception(""))
+        onLoadFailed()
+    }
+
+    private fun onLoadFailed() {
+
+    }
+
+    private var currentFetcher: DataFetcher<*>? = null
+
+    @Volatile
+    private var currentGenerator: DataFetcherGenerator? = null
+
+    @Volatile
+    private var isCancelled = false
 
     interface DiskCacheProvider {
         val diskCache: DiskCache
@@ -66,8 +181,8 @@ class DecodeJob<R>(
         signature: Key,
         width: Int,
         height: Int,
-        resourceClass: Class<*>?,
-        transcodeClass: Class<R>?,
+        resourceClass: Class<*>,
+        transcodeClass: Class<R>,
         priority: Priority,
         diskCacheStrategy: DiskCacheStrategy,
         transformations: Map<Class<*>, Transformation<*>>,
@@ -78,7 +193,7 @@ class DecodeJob<R>(
         callback: DecodeJob.Callback<R>,
         order: Int
     ): DecodeJob<R> {
-        /*      decodeHelper.init(
+              decodeHelper.init(
                   glideContext,
                   model,
                   signature,
@@ -93,7 +208,7 @@ class DecodeJob<R>(
                   isTransformationRequired,
                   isScaleOnlyOrNoTransform,
                   diskCacheProvider
-              )*/
+              )
         this.glideContext = glideContext
         this.signature = signature
         this.priority = priority
@@ -105,7 +220,7 @@ class DecodeJob<R>(
         this.options = options
         this.callback = callback
         this.order = order
-        this.runReason = DecodeJob.RunReason.INITIALIZE
+        this.runReason = RunReason.INITIALIZE
         this.model = model
         return this
     }
@@ -115,7 +230,9 @@ class DecodeJob<R>(
     }
 
     fun cancel() {
-
+        isCancelled = true
+        val local = currentGenerator
+        local?.cancel()
     }
 
     fun release(b: Boolean) {
@@ -128,5 +245,26 @@ class DecodeJob<R>(
             result = order - other.order
         }
         return result
+    }
+
+
+    override fun reschedule() {
+    }
+
+    override fun onDataFetcherReady(
+        sourceKey: Key,
+        data: Any,
+        fetcher: DataFetcher<*>,
+        dataSource: DataSource?,
+        attemptedKey: Key
+    ) {
+    }
+
+    override fun onDataFetcherFailed(
+        attemptedKey: Key,
+        e: Exception?,
+        fetcher: DataFetcher<*>,
+        dataSource: DataSource
+    ) {
     }
 }
