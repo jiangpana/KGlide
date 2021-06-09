@@ -12,7 +12,7 @@ interface ModelLoader<Model, Data> {
     }
 
     fun buildLoadData(
-        model: ColorSpace.Model,
+        model: Any,
         width: Int,
         height: Int,
         options: Options
