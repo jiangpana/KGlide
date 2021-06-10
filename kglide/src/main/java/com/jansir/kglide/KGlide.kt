@@ -6,9 +6,11 @@ import com.jansir.kglide.load.engine.Engine
 import com.jansir.kglide.load.engine.bitmap_recycle.ArrayPool
 import com.jansir.kglide.load.engine.bitmap_recycle.BitmapPool
 import com.jansir.kglide.load.engine.cache.MemoryCache
+import com.jansir.kglide.load.model.StringLoader
 import com.jansir.kglide.manager.ConnectivityMonitorFactory
 import com.jansir.kglide.manager.RequestManagerRetriever
 import com.jansir.kglide.request.RequestOptions
+import java.io.InputStream
 
 
 class KGlide(
@@ -24,6 +26,9 @@ class KGlide(
     private  var glideContext: GlideContext
     init {
         glideContext = GlideContext(context)
+        glideContext.getRegistry().apply {
+            append(String::class.java , InputStream::class.java, StringLoader.StreamFactory())
+        }
     }
     fun getGlideContext(): GlideContext {
         return glideContext

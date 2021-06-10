@@ -8,6 +8,8 @@ import com.jansir.kglide.request.target.ViewTarget
 
 class GlideContext(base: Context) : ContextWrapper(base.applicationContext) {
 
+    private val registry =Registry()
+    fun getRegistry()=registry
     private val imageViewTargetFactory: ImageViewTargetFactory = ImageViewTargetFactory()
 
     fun <X>  buildImageViewTarget(

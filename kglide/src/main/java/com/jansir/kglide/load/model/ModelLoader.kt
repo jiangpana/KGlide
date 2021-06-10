@@ -12,11 +12,11 @@ interface ModelLoader<Model, Data> {
     }
 
     fun buildLoadData(
-        model: Any,
+        model: Model,
         width: Int,
         height: Int,
         options: Options
-    ): LoadData<Data>
+    ): LoadData<Data>?
 
     fun handles(model: Model): Boolean
 }
