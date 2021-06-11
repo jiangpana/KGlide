@@ -38,7 +38,14 @@ class SourceGenerator(
     }
 
     private fun startNextLoad(loadData: ModelLoader.LoadData<*>) {
+        loadData.fetcher.loadData(helper.getPriority(), object : DataFetcher.DataCallback<Any?> {
+            override fun onDataReady(data: Any?) {
+                println("startNextLoad -> onDataReady")
+            }
 
+            override fun onLoadFailed(e: Exception) {
+            }
+        })
     }
 
     private fun hasNextModelLoader(): Boolean {

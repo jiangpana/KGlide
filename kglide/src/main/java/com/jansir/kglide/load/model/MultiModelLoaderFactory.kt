@@ -1,7 +1,6 @@
 package com.jansir.kglide.load.model
 
 import androidx.core.util.Pools
-import androidx.core.util.Preconditions
 import com.jansir.kglide.load.Options
 import java.util.*
 
@@ -47,6 +46,15 @@ class MultiModelLoaderFactory (val throwableListPool : Pools.Pool<List<Throwable
         return entry.factory.build(this) as ModelLoader<Model, Data>
     }
 
+    fun<Model> build(modelClass:Class<Model>):List<ModelLoader<Model, *>>{
+        val loaders = ArrayList<ModelLoader<Model, *>>()
+        entries.forEach {
+            if (it.handles(modelClass)) {
+                loaders.add(this.build<Model, Any>(it))
+            }
+        }
+        return loaders
+    }
     class Factory {
         fun <Model, Data> build(
             modelLoaders: List<ModelLoader<Model, Data>>,
