@@ -6,7 +6,7 @@ class ResourceCacheGenerator(val helper:DecodeHelper<*>,
     val callback: DataFetcherGenerator.FetcherReadyCallback
 ): DataFetcherGenerator, DataFetcher.DataCallback<Any> {
     override fun startNext():Boolean {
-        return true
+        return false
     }
 
     override fun cancel() {

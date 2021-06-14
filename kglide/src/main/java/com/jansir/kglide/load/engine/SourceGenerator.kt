@@ -4,6 +4,7 @@ import com.jansir.kglide.load.DataSource
 import com.jansir.kglide.load.Key
 import com.jansir.kglide.load.data.DataFetcher
 import com.jansir.kglide.load.model.ModelLoader
+import java.io.InputStream
 
 class SourceGenerator(
     val helper: DecodeHelper<*>,
@@ -21,6 +22,7 @@ class SourceGenerator(
     private var loadDataListIndex = 0
 
     override fun startNext(): Boolean {
+
         loadData = null
         var started = false
         while (!started && hasNextModelLoader()) {
@@ -38,9 +40,18 @@ class SourceGenerator(
     }
 
     private fun startNextLoad(loadData: ModelLoader.LoadData<*>) {
+        println("SourceGenerator -> startNextLoad")
         loadData.fetcher.loadData(helper.getPriority(), object : DataFetcher.DataCallback<Any?> {
             override fun onDataReady(data: Any?) {
                 println("startNextLoad -> onDataReady")
+                println("data = ${(data as InputStream).readBytes().size}")
+                cb.onDataFetcherReady(
+                    loadData.sourceKey,
+                    data,
+                    loadData.fetcher,
+                    loadData.fetcher.getDataSource(),
+                    loadData.sourceKey
+                )
             }
 
             override fun onLoadFailed(e: Exception) {

@@ -29,6 +29,9 @@ class DecodeJob<R>(
     private var startFetchTime: Long = 0
     private var onlyRetrieveFromCache = false
     private var model: Any? = null
+    private var currentThread: Thread? = null
+    private var currentData: Any? = null
+    private var currentDataSource: DataSource? = null
 
     override fun run() {
         println("DecodeJob #run . thread name ->${Thread.currentThread().name}")
@@ -61,7 +64,7 @@ class DecodeJob<R>(
                 runGenerators()
             }
             RunReason.SWITCH_TO_SOURCE_SERVICE -> {
-
+                runGenerators()
             }
             RunReason.DECODE_DATA -> {
 
@@ -70,6 +73,7 @@ class DecodeJob<R>(
     }
 
     private fun runGenerators() {
+        currentThread = Thread.currentThread()
         var isStarted = false
         while (!isCancelled && currentGenerator != null && !(currentGenerator!!.startNext()
                 .apply { isStarted = this })
@@ -245,10 +249,12 @@ class DecodeJob<R>(
             result = order - other.order
         }
         return result
-    }
+}
 
 
     override fun reschedule() {
+        runReason = RunReason.SWITCH_TO_SOURCE_SERVICE
+        callback!!.reschedule(this)
     }
 
     override fun onDataFetcherReady(
@@ -258,6 +264,55 @@ class DecodeJob<R>(
         dataSource: DataSource?,
         attemptedKey: Key
     ) {
+        currentData = data
+        currentDataSource = dataSource;
+        if (Thread.currentThread() !== currentThread) {
+            runReason = RunReason.DECODE_DATA
+            callback!!.reschedule(this)
+        }else {
+            try {
+                decodeFromRetrievedData()
+            } catch (e: Exception) {
+            }
+        }
+    }
+
+    private fun decodeFromRetrievedData() {
+        var resource: Resource<R>? = null
+        try {
+            resource = decodeFromData(currentFetcher, currentData, currentDataSource)
+        } catch (e: Exception) {
+        }
+        if (resource != null) {
+//            notifyEncodeAndRelease(resource, currentDataSource)
+        } else {
+            runGenerators()
+        }
+    }
+
+    //解码数据
+    @Throws(Exception::class)
+    private fun  <Data: Any>  decodeFromData(fetcher: DataFetcher<*>?, data: Data?, dataSource: DataSource?): Resource<R>? {
+        try {
+            if (data == null) {
+                return null
+            }
+            val result: Resource<R>? = decodeFromFetcher(data, dataSource)
+            return result
+        } catch (e: Exception) {
+        }finally {
+            fetcher!!.cleanup()
+        }
+      return null
+    }
+
+    private fun <Data : Any> decodeFromFetcher(data: Data, dataSource: DataSource?): Resource<R> ?{
+        val path =decodeHelper.getLoadPath(data.javaClass as Class<Data>)
+        return runLoadPath(data,dataSource,path)
+    }
+
+    private fun <Data> runLoadPath(data: Data, dataSource: DataSource?, path: Any): Resource<R> ?{
+        return null
     }
 
     override fun onDataFetcherFailed(

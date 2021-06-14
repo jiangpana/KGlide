@@ -72,4 +72,8 @@ class DecodeHelper<Transcode> {
     fun getPriority(): Priority {
         return priority
     }
+
+    fun <Data> getLoadPath(clazz: Class<Data>): Any {
+return Any()
+    }
 }

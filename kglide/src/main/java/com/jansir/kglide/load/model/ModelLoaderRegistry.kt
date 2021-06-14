@@ -30,9 +30,11 @@ class ModelLoaderRegistry(val throwableListPool: Pools.Pool<List<Throwable>>? = 
         return filteredLoaders
     }
 
+    //此处添加同步锁,不然  cache.put(modelClass, loaders) 会有线程安全问题.
+    @Synchronized
     private fun <A> getModelLoadersForClass(modelClass: Class<A>): List<ModelLoader<A, *>> {
         cache.get(modelClass)?.let {
-            return it
+         return it
         }
         val loaders = multiModelLoaderFactory.build(modelClass)
         cache.put(modelClass, loaders)
@@ -48,6 +50,7 @@ class ModelLoaderRegistry(val throwableListPool: Pools.Pool<List<Throwable>>? = 
         fun clear() {
             cachedModelLoaders.clear()
         }
+
 
         fun <Model> put(
             modelClass: Class<Model>,

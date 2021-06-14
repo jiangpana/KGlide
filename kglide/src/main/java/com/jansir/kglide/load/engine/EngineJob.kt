@@ -109,6 +109,9 @@ class EngineJob<R>(
     }
 
     override fun reschedule(job: DecodeJob<*>?) {
+        // Even if the job is cancelled here, it still needs to be scheduled so that it can clean itself
+        // up.
+        getActiveSourceExecutor().execute(job)
     }
 
     fun start(decodeJob: DecodeJob<R>) {
