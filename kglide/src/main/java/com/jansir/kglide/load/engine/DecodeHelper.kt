@@ -10,6 +10,8 @@ import java.util.*
 
 class DecodeHelper<Transcode> {
 
+    private lateinit var resourceClass: Class<*>
+    private lateinit var transcodeClass: Class<Transcode>
     private lateinit var priority: Priority
     private lateinit var options: Options
     private var width: Int = 0
@@ -43,6 +45,8 @@ class DecodeHelper<Transcode> {
         this.options = options;
         this.glideContext = glideContext
         this.diskCacheStrategy = diskCacheStrategy
+        this.resourceClass = resourceClass
+        this.transcodeClass = transcodeClass
     }
 
 
@@ -73,7 +77,9 @@ class DecodeHelper<Transcode> {
         return priority
     }
 
-    fun <Data> getLoadPath(clazz: Class<Data>): Any {
-return Any()
+    //dataClass = inputstream
+    //transcodeClass = drawable ,
+    fun <Data> getLoadPath(dataClass: Class<Data>): LoadPath<Data, *, Transcode> {
+        return glideContext.getRegistry().getLoadPath(dataClass, resourceClass, transcodeClass)!!
     }
 }

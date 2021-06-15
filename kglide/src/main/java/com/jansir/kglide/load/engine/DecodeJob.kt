@@ -85,7 +85,7 @@ class DecodeJob<R>(
                 return
             }
         }
-        if ((stage==Stage.FINISHED || isCancelled)&&!isStarted){
+        if ((stage == Stage.FINISHED || isCancelled) && !isStarted) {
             notifyFailed()
         }
     }
@@ -197,22 +197,22 @@ class DecodeJob<R>(
         callback: DecodeJob.Callback<R>,
         order: Int
     ): DecodeJob<R> {
-              decodeHelper.init(
-                  glideContext,
-                  model,
-                  signature,
-                  width,
-                  height,
-                  diskCacheStrategy,
-                  resourceClass,
-                  transcodeClass,
-                  priority,
-                  options,
-                  transformations,
-                  isTransformationRequired,
-                  isScaleOnlyOrNoTransform,
-                  diskCacheProvider
-              )
+        decodeHelper.init(
+            glideContext,
+            model,
+            signature,
+            width,
+            height,
+            diskCacheStrategy,
+            resourceClass,
+            transcodeClass,
+            priority,
+            options,
+            transformations,
+            isTransformationRequired,
+            isScaleOnlyOrNoTransform,
+            diskCacheProvider
+        )
         this.glideContext = glideContext
         this.signature = signature
         this.priority = priority
@@ -249,7 +249,7 @@ class DecodeJob<R>(
             result = order - other.order
         }
         return result
-}
+    }
 
 
     override fun reschedule() {
@@ -269,7 +269,7 @@ class DecodeJob<R>(
         if (Thread.currentThread() !== currentThread) {
             runReason = RunReason.DECODE_DATA
             callback!!.reschedule(this)
-        }else {
+        } else {
             try {
                 decodeFromRetrievedData()
             } catch (e: Exception) {
@@ -280,7 +280,7 @@ class DecodeJob<R>(
     private fun decodeFromRetrievedData() {
         var resource: Resource<R>? = null
         try {
-            resource = decodeFromData(currentFetcher, currentData, currentDataSource)
+            resource = decodeFromData(currentFetcher, currentData, currentDataSource!!)
         } catch (e: Exception) {
         }
         if (resource != null) {
@@ -292,7 +292,11 @@ class DecodeJob<R>(
 
     //解码数据
     @Throws(Exception::class)
-    private fun  <Data: Any>  decodeFromData(fetcher: DataFetcher<*>?, data: Data?, dataSource: DataSource?): Resource<R>? {
+    private fun <Data : Any> decodeFromData(
+        fetcher: DataFetcher<*>?,
+        data: Data?,
+        dataSource: DataSource
+    ): Resource<R>? {
         try {
             if (data == null) {
                 return null
@@ -300,20 +304,36 @@ class DecodeJob<R>(
             val result: Resource<R>? = decodeFromFetcher(data, dataSource)
             return result
         } catch (e: Exception) {
-        }finally {
+        } finally {
             fetcher!!.cleanup()
         }
-      return null
-    }
-
-    private fun <Data : Any> decodeFromFetcher(data: Data, dataSource: DataSource?): Resource<R> ?{
-        val path =decodeHelper.getLoadPath(data.javaClass as Class<Data>)
-        return runLoadPath(data,dataSource,path)
-    }
-
-    private fun <Data> runLoadPath(data: Data, dataSource: DataSource?, path: Any): Resource<R> ?{
         return null
     }
+
+    private fun <Data : Any> decodeFromFetcher(data: Data, dataSource: DataSource): Resource<R>? {
+        val path = decodeHelper.getLoadPath(data.javaClass)
+        return runLoadPath(data, dataSource, path)
+    }
+
+    private fun <Data,ResourceType> runLoadPath(
+        data: Data,
+        dataSource: DataSource,
+        path: LoadPath<Data, ResourceType, R>
+    ): Resource<R>? {
+        val rewinder =glideContext!!.getRegistry().getRewinder(data);
+        try {
+            return path.load(
+                rewinder!!,
+                options,
+                width,
+                height,
+                this@DecodeJob.DecodeCallback<ResourceType>(dataSource)
+            )
+        } finally {
+            rewinder!!.cleanup()
+        }
+    }
+
 
     override fun onDataFetcherFailed(
         attemptedKey: Key,
@@ -321,5 +341,18 @@ class DecodeJob<R>(
         fetcher: DataFetcher<*>,
         dataSource: DataSource
     ) {
+    }
+
+    private inner class DecodeCallback<Z>(val dataSource: DataSource) :
+        DecodePath.DecodeCallback<Z> {
+        override fun onResourceDecoded(decoded: Resource<Z>): Resource<Z> {
+            return this@DecodeJob.onResourceDecoded(dataSource, decoded)!!
+        }
+
+    }
+
+    private fun <Z> onResourceDecoded(dataSource: DataSource, decoded: Resource<Z>): Resource<Z>? {
+
+        return null
     }
 }

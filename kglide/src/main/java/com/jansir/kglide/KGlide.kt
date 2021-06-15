@@ -1,8 +1,11 @@
 package com.jansir.kglide
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import androidx.fragment.app.FragmentActivity
+import com.jansir.kglide.load.ResourceDecoder
 import com.jansir.kglide.load.engine.Engine
 import com.jansir.kglide.load.engine.bitmap_recycle.ArrayPool
 import com.jansir.kglide.load.engine.bitmap_recycle.BitmapPool
@@ -11,6 +14,10 @@ import com.jansir.kglide.load.model.KGlideUrl
 import com.jansir.kglide.load.model.StringLoader
 import com.jansir.kglide.load.model.stream.HttpGlideUrlLoader
 import com.jansir.kglide.load.model.stream.HttpUriLoader
+import com.jansir.kglide.load.resource.bitmap.BitmapDrawableDecoder
+import com.jansir.kglide.load.resource.bitmap.Downsampler
+import com.jansir.kglide.load.resource.bitmap.StreamBitmapDecoder
+import com.jansir.kglide.load.resource.transcode.BitmapDrawableTranscoder
 import com.jansir.kglide.manager.ConnectivityMonitorFactory
 import com.jansir.kglide.manager.RequestManagerRetriever
 import com.jansir.kglide.request.RequestOptions
@@ -27,15 +34,42 @@ class KGlide(
     val arrayPool: ArrayPool,
     val requestOptionsFactory: RequestOptionsFactory
 ) {
-    private  var glideContext = GlideContext(context)
+    private var glideContext = GlideContext(context)
 
     init {
+        val resources =context.resources
         glideContext.getRegistry().apply {
-            append(String::class.java , InputStream::class.java, StringLoader.StreamFactory())
-            append(Uri::class.java , InputStream::class.java, HttpUriLoader.Factory())
-            append(KGlideUrl::class.java , InputStream::class.java, HttpGlideUrlLoader.Factory())
+            //model
+            append(String::class.java, InputStream::class.java, StringLoader.StreamFactory())
+            append(Uri::class.java, InputStream::class.java, HttpUriLoader.Factory())
+            append(KGlideUrl::class.java, InputStream::class.java, HttpGlideUrlLoader.Factory())
+
+            //decode
+            val streamBitmapDecoder: ResourceDecoder<InputStream, Bitmap>
+            streamBitmapDecoder = StreamBitmapDecoder(
+                downsampler = Downsampler(),
+                byteArrayPool = arrayPool
+            )
+            append(
+                Registry.BUCKET_BITMAP,
+                InputStream::class.java,
+                Bitmap::class.java,
+                streamBitmapDecoder
+            )
+            append(
+                    Registry.BUCKET_BITMAP_DRAWABLE,
+                    InputStream::class.java,
+                            BitmapDrawable::class.java,
+             BitmapDrawableDecoder(resources, streamBitmapDecoder)
+            )
+
+            //transcode
+            register(Bitmap::class.java,BitmapDrawable::class.java,
+                BitmapDrawableTranscoder(resources)
+            )
         }
     }
+
     fun getGlideContext(): GlideContext {
         return glideContext
     }

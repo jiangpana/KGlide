@@ -11,7 +11,10 @@ class DecodePath <DataType, ResourceType, Transcode> (
     transcodeClass: Class<Transcode>,
     decodes:List<out ResourceDecoder<DataType, ResourceType>>,
     transcoders: ResourceTranscoder<ResourceType, Transcode>,
-    listPool : Pools.Pool<List<Throwable>>
+    listPool : Pools.Pool<List<Throwable>>?=null
 ){
 
+     interface DecodeCallback<ResourceType> {
+        fun onResourceDecoded(resource: Resource<ResourceType>): Resource<ResourceType>
+    }
 }
