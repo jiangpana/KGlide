@@ -6,6 +6,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import androidx.fragment.app.FragmentActivity
 import com.jansir.kglide.load.ResourceDecoder
+import com.jansir.kglide.load.data.InputStreamRewinder
 import com.jansir.kglide.load.engine.Engine
 import com.jansir.kglide.load.engine.bitmap_recycle.ArrayPool
 import com.jansir.kglide.load.engine.bitmap_recycle.BitmapPool
@@ -67,6 +68,7 @@ class KGlide(
             register(Bitmap::class.java,BitmapDrawable::class.java,
                 BitmapDrawableTranscoder(resources)
             )
+            register(InputStreamRewinder.Factory(arrayPool))
         }
     }
 

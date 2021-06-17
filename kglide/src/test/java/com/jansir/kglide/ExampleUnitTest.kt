@@ -11,8 +11,11 @@ class ExampleUnitTest {
     @Test
     fun addition_isCorrect() {
         for (i in 0..100){
-            println((0..1).random())
+            printThis((0..1).random().toString())
         }
     }
 
+}
+fun Any.printThis(message: String) {
+    println("${javaClass.simpleName} -> $message")
 }

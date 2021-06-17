@@ -22,6 +22,7 @@ class StreamBitmapDecoder(
         height: Int,
         options: Options
     ): Resource<Bitmap>? {
+        println("StreamBitmapDecoder decode -> width=$width , height=$height")
         return null
     }
 }

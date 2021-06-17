@@ -304,6 +304,7 @@ class DecodeJob<R>(
             val result: Resource<R>? = decodeFromFetcher(data, dataSource)
             return result
         } catch (e: Exception) {
+            e.printStackTrace()
         } finally {
             fetcher!!.cleanup()
         }
@@ -315,7 +316,7 @@ class DecodeJob<R>(
         return runLoadPath(data, dataSource, path)
     }
 
-    private fun <Data,ResourceType> runLoadPath(
+    private fun <Data:Any,ResourceType> runLoadPath(
         data: Data,
         dataSource: DataSource,
         path: LoadPath<Data, ResourceType, R>
@@ -323,14 +324,14 @@ class DecodeJob<R>(
         val rewinder =glideContext!!.getRegistry().getRewinder(data);
         try {
             return path.load(
-                rewinder!!,
-                options,
+                rewinder,
+                options!!,
                 width,
                 height,
                 this@DecodeJob.DecodeCallback<ResourceType>(dataSource)
             )
         } finally {
-            rewinder!!.cleanup()
+            rewinder.cleanup()
         }
     }
 
