@@ -1,6 +1,7 @@
 package com.jansir.kglide.load.engine
 
 import androidx.core.util.Pools
+import com.jansir.kglide.ext.printThis
 import com.jansir.kglide.load.DataSource
 import com.jansir.kglide.load.Key
 import com.jansir.kglide.load.engine.exector.GlideExecutor
@@ -102,7 +103,21 @@ class EngineJob<R>(
 
 
     override fun onResourceReady(resource: Resource<R>?, dataSource: DataSource?) {
+        printThis(" onResourceReady")
+        synchronized(this) {
+            this.resource = resource
+            this.dataSource = dataSource
+        }
+        notifyCallbacksOfResult()
+    }
 
+    private fun notifyCallbacksOfResult() {
+        cbs.forEach {
+            it.executor.execute{
+                printThis(" it.executor.execute")
+                it.cb.onResourceReady(resource!!,dataSource)
+            }
+        }
     }
 
     override fun onLoadFailed(e: Exception?) {
@@ -164,7 +179,7 @@ class EngineJob<R>(
         }
     }
 
-    class ResourceCallbackAndExecutor(val cb: ResourceCallback, executor: Executor) {
+    class ResourceCallbackAndExecutor(val cb: ResourceCallback, val executor: Executor) {
 
         override fun equals(other: Any?): Boolean {
             if (other is ResourceCallbackAndExecutor) {

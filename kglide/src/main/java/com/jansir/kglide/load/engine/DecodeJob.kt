@@ -3,6 +3,7 @@ package com.jansir.kglide.load.engine
 import androidx.core.util.Pools
 import com.jansir.kglide.GlideContext
 import com.jansir.kglide.Priority
+import com.jansir.kglide.ext.printThis
 import com.jansir.kglide.load.DataSource
 import com.jansir.kglide.load.Key
 import com.jansir.kglide.load.Options
@@ -266,6 +267,7 @@ class DecodeJob<R>(
     ) {
         currentData = data
         currentDataSource = dataSource;
+        currentFetcher = fetcher
         if (Thread.currentThread() !== currentThread) {
             runReason = RunReason.DECODE_DATA
             callback!!.reschedule(this)
@@ -273,6 +275,7 @@ class DecodeJob<R>(
             try {
                 decodeFromRetrievedData()
             } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
@@ -282,12 +285,18 @@ class DecodeJob<R>(
         try {
             resource = decodeFromData(currentFetcher, currentData, currentDataSource!!)
         } catch (e: Exception) {
+            e.printStackTrace()
         }
         if (resource != null) {
-//            notifyEncodeAndRelease(resource, currentDataSource)
+            notifyEncodeAndRelease(resource, currentDataSource!!)
         } else {
             runGenerators()
         }
+    }
+
+    private fun notifyEncodeAndRelease(resource: Resource<R>, dataSource: DataSource) {
+        printThis("notifyEncodeAndRelease")
+        callback!!.onResourceReady(resource, dataSource)
     }
 
     //解码数据
@@ -297,18 +306,18 @@ class DecodeJob<R>(
         data: Data?,
         dataSource: DataSource
     ): Resource<R>? {
+        var result: Resource<R>?=null
         try {
             if (data == null) {
                 return null
             }
-            val result: Resource<R>? = decodeFromFetcher(data, dataSource)
-            return result
+            result = decodeFromFetcher(data, dataSource)
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
-            fetcher!!.cleanup()
+            fetcher?.cleanup()
         }
-        return null
+        return result
     }
 
     private fun <Data : Any> decodeFromFetcher(data: Data, dataSource: DataSource): Resource<R>? {
@@ -346,14 +355,15 @@ class DecodeJob<R>(
 
     private inner class DecodeCallback<Z>(val dataSource: DataSource) :
         DecodePath.DecodeCallback<Z> {
-        override fun onResourceDecoded(decoded: Resource<Z>): Resource<Z> {
-            return this@DecodeJob.onResourceDecoded(dataSource, decoded)!!
+        override fun onResourceDecoded(decoded: Resource<Z>?): Resource<Z> ?{
+            printThis("DecodeJob.onResourceDecoded")
+            return this@DecodeJob.onResourceDecoded(dataSource, decoded)
         }
 
     }
 
-    private fun <Z> onResourceDecoded(dataSource: DataSource, decoded: Resource<Z>): Resource<Z>? {
-
-        return null
+    private fun <Z> onResourceDecoded(dataSource: DataSource, decoded: Resource<Z>?): Resource<Z>? {
+        printThis("decoded =${decoded?.get()}")
+        return decoded
     }
 }

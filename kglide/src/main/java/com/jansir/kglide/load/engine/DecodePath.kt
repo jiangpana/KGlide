@@ -1,6 +1,7 @@
 package com.jansir.kglide.load.engine
 
 import androidx.core.util.Pools
+import com.jansir.kglide.ext.printThis
 import com.jansir.kglide.load.Options
 import com.jansir.kglide.load.ResourceDecoder
 import com.jansir.kglide.load.data.DataRewinder
@@ -24,8 +25,9 @@ class DecodePath <DataType, ResourceType, Transcode> (
         options: Options,
         callback: DecodePath.DecodeCallback<ResourceType>
     ): Resource<Transcode>? {
+        printThis("decode")
         val decoded: Resource<ResourceType>? = decodeResource(rewinder, width, height, options)
-        val transformed: Resource<ResourceType> = callback.onResourceDecoded(decoded!!)
+        val transformed: Resource<ResourceType>? = callback.onResourceDecoded(decoded)
         return transcoder.transcode(transformed, options)
     }
 
@@ -60,6 +62,6 @@ class DecodePath <DataType, ResourceType, Transcode> (
 
 
     interface DecodeCallback<ResourceType> {
-        fun onResourceDecoded(resource: Resource<ResourceType>): Resource<ResourceType>
+        fun onResourceDecoded(resource: Resource<ResourceType>?): Resource<ResourceType>?
     }
 }

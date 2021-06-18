@@ -35,10 +35,10 @@ class LoadPath<Data, ResourceType, Transcode>(
             try {
                 result = it.decode(rewinder, width, height, options, decodeCallback)
             } catch (e: Exception) {
-
+                e.printStackTrace()
             }
             if (result != null) {
-                return@forEach
+                return result
             }
         }
 

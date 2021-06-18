@@ -40,14 +40,11 @@ class SourceGenerator(
     }
 
     private fun startNextLoad(loadData: ModelLoader.LoadData<*>) {
-        println("SourceGenerator -> startNextLoad")
         loadData.fetcher.loadData(helper.getPriority(), object : DataFetcher.DataCallback<Any?> {
             override fun onDataReady(data: Any?) {
-                println("startNextLoad -> onDataReady")
-                println("data = ${(data as InputStream).readBytes().size}")
                 cb.onDataFetcherReady(
                     loadData.sourceKey,
-                    data,
+                    data!!,
                     loadData.fetcher,
                     loadData.fetcher.getDataSource(),
                     loadData.sourceKey
@@ -64,6 +61,7 @@ class SourceGenerator(
     }
 
     override fun cancel() {
+        loadData?.fetcher?.cancel()
     }
 
     override fun reschedule() {

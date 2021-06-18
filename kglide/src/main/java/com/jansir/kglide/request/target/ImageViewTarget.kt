@@ -2,6 +2,7 @@ package com.jansir.kglide.request.target
 
 import android.graphics.drawable.Drawable
 import android.widget.ImageView
+import com.jansir.kglide.ext.printThis
 import com.jansir.kglide.request.transition.Transition
 
 abstract class ImageViewTarget<Z>(override val view: ImageView) : ViewTarget<ImageView, Z>(view) {
@@ -20,6 +21,7 @@ abstract class ImageViewTarget<Z>(override val view: ImageView) : ViewTarget<Ima
 
     override fun onResourceReady(resource: Z, transition: Transition<Z?>?) {
         super.onResourceReady(resource, transition)
+        printThis("onResourceReady")
         setResourceInternal(resource)
     }
 

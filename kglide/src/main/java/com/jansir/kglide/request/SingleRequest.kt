@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable
 import android.util.Log
 import com.jansir.kglide.GlideContext
 import com.jansir.kglide.Priority
+import com.jansir.kglide.ext.printThis
 import com.jansir.kglide.load.DataSource
 import com.jansir.kglide.load.engine.Engine
 import com.jansir.kglide.load.engine.Resource
@@ -200,7 +201,8 @@ class SingleRequest<R> private constructor(
     }
 
     override fun onResourceReady(resource: Resource<*>, dataSource: DataSource?) {
-
+       printThis("onResourceReady")
+        target.onResourceReady(resource.get() as R,null)
     }
 
     override fun onLoadFailed(e: Exception) {

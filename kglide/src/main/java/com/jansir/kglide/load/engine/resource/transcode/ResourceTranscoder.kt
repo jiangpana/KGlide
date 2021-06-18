@@ -5,5 +5,5 @@ import com.jansir.kglide.load.engine.Resource
 
 
 interface ResourceTranscoder<Z, R>  {
-    fun transcode(toTranscode: Resource<Z>,options : Options):Resource<R>
+    fun transcode(toTranscode: Resource<Z>?,options : Options):Resource<R>
 }

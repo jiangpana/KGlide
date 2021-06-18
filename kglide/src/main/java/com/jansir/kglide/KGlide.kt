@@ -48,7 +48,7 @@ class KGlide(
             //decode
             val streamBitmapDecoder: ResourceDecoder<InputStream, Bitmap>
             streamBitmapDecoder = StreamBitmapDecoder(
-                downsampler = Downsampler(),
+                downsampler = Downsampler(bitmapPool, byteArrayPool = arrayPool),
                 byteArrayPool = arrayPool
             )
             append(

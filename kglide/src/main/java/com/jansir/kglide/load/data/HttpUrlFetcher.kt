@@ -1,8 +1,10 @@
 package com.jansir.kglide.load.data
 
+import android.text.TextUtils
 import com.jansir.kglide.Priority
 import com.jansir.kglide.load.DataSource
 import com.jansir.kglide.load.model.KGlideUrl
+import com.jansir.kglide.util.ContentLengthInputStream
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
@@ -29,6 +31,7 @@ class HttpUrlFetcher(val glideUrl: KGlideUrl) : DataFetcher<InputStream> {
                 callback.onDataReady(it)
             }
         } catch (e: Exception) {
+            e.printStackTrace()
         } finally {
         }
     }
@@ -86,8 +89,13 @@ class HttpUrlFetcher(val glideUrl: KGlideUrl) : DataFetcher<InputStream> {
     }
 
     private fun getStreamForSuccessfulRequest(urlConnection: HttpURLConnection): InputStream? {
-        stream = urlConnection.inputStream
        println("urlConnection.contentLength =${ urlConnection.contentLength}")
+        if (TextUtils.isEmpty(urlConnection.contentEncoding)) {
+            val contentLength = urlConnection.contentLength
+            stream = ContentLengthInputStream.obtain(urlConnection.inputStream, contentLength.toLong())
+        }else{
+            stream = urlConnection.inputStream
+        }
         return stream
     }
 
