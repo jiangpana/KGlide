@@ -59,10 +59,16 @@ object FactoryPools {
             if (result == null) {
                 result = factory.create()
             }
+            if (result is Poolable){
+                result.getVerifier().setRecycled(false)
+            }
             return result!!
         }
 
         override fun release(instance: T): Boolean {
+            if (instance is Poolable){
+                instance.getVerifier().setRecycled(true)
+            }
             resetter.reset(instance)
             return pool.release(instance)
         }
@@ -82,5 +88,9 @@ object FactoryPools {
         }
 
         fun reset(setter: T)
+    }
+
+    interface Poolable{
+        fun getVerifier(): StateVerifier
     }
 }

@@ -2,15 +2,15 @@ package com.jansir.kglide.load.resource.bitmap
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import com.jansir.kglide.ext.printThis
 import com.jansir.kglide.load.Options
-import com.jansir.kglide.load.data.InputStreamRewinder
 import com.jansir.kglide.load.engine.Resource
 import com.jansir.kglide.load.engine.bitmap_recycle.ArrayPool
 import com.jansir.kglide.load.engine.bitmap_recycle.BitmapPool
 import com.jansir.kglide.load.engine.resource.bitmap.BitmapResource
+import com.jansir.kglide.util.Util
 import java.io.IOException
 import java.io.InputStream
-import java.io.InputStreamReader
 
 class Downsampler(
     val bitmapPool: BitmapPool, val byteArrayPool: ArrayPool
@@ -26,13 +26,23 @@ class Downsampler(
         options: Options,
         callbacks: DecodeCallbacks?
     ): Resource<Bitmap>? {
-
-        val options = BitmapFactory.Options()
-        options.inScaled = false
-        options.inMutable = true
         var bitmap: Bitmap
+        val options = BitmapFactory.Options()
         ris.reset()
-        bitmap = BitmapFactory.decodeStream(ris)!!
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeStream(ris,null,options)
+        options.inJustDecodeBounds = false;
+        val sourceHeight =options.outHeight
+        val sourceWidth =options.outWidth
+        printThis("sourceHeight =$sourceHeight sourceWidth =$sourceWidth")
+//        options.inSampleSize =8
+        options.inTargetDensity=width
+        options.inDensity=sourceWidth
+        options.inScaled=true
+        //把流回到起点
+        ris.reset()
+        bitmap = BitmapFactory.decodeStream(ris,null,options)!!
+        printThis("bitmap size = ${Util.getBitmapByteSize(bitmap)}")
         return BitmapResource.obtain(bitmap, bitmapPool);
     }
 

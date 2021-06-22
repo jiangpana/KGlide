@@ -4,7 +4,6 @@ import com.jansir.kglide.load.DataSource
 import com.jansir.kglide.load.Key
 import com.jansir.kglide.load.data.DataFetcher
 import com.jansir.kglide.load.model.ModelLoader
-import java.io.InputStream
 
 class SourceGenerator(
     val helper: DecodeHelper<*>,
@@ -52,8 +51,16 @@ class SourceGenerator(
             }
 
             override fun onLoadFailed(e: Exception) {
+                onLoadFailedInternal(loadData,e)
             }
         })
+    }
+
+    private fun onLoadFailedInternal(
+        loadData: ModelLoader.LoadData<*>,
+        e: Exception
+    ) {
+        cb.onDataFetcherFailed(loadData.sourceKey,e,loadData.fetcher,loadData.fetcher.getDataSource())
     }
 
     private fun hasNextModelLoader(): Boolean {

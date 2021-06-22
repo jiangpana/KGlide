@@ -31,7 +31,7 @@ class HttpUrlFetcher(val glideUrl: KGlideUrl) : DataFetcher<InputStream> {
                 callback.onDataReady(it)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            callback.onLoadFailed(e)
         } finally {
         }
     }

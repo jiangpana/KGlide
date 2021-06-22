@@ -4,10 +4,7 @@ import androidx.core.util.Pools
 import com.jansir.kglide.GlideContext
 import com.jansir.kglide.Priority
 import com.jansir.kglide.ext.printThis
-import com.jansir.kglide.load.DataSource
-import com.jansir.kglide.load.Key
-import com.jansir.kglide.load.Options
-import com.jansir.kglide.load.Transformation
+import com.jansir.kglide.load.*
 import com.jansir.kglide.load.data.DataFetcher
 import com.jansir.kglide.load.engine.cache.DiskCache
 
@@ -296,7 +293,14 @@ class DecodeJob<R>(
 
     private fun notifyEncodeAndRelease(resource: Resource<R>, dataSource: DataSource) {
         printThis("notifyEncodeAndRelease")
-        callback!!.onResourceReady(resource, dataSource)
+        val result = resource
+        notifyComplete(result, dataSource)
+        stage = Stage.ENCODE
+//        deferredEncodeManager
+    }
+
+    private fun notifyComplete(result: Resource<R>, dataSource: DataSource) {
+        callback!!.onResourceReady(result, dataSource)
     }
 
     //解码数据
@@ -306,7 +310,7 @@ class DecodeJob<R>(
         data: Data?,
         dataSource: DataSource
     ): Resource<R>? {
-        var result: Resource<R>?=null
+        var result: Resource<R>? = null
         try {
             if (data == null) {
                 return null
@@ -325,12 +329,12 @@ class DecodeJob<R>(
         return runLoadPath(data, dataSource, path)
     }
 
-    private fun <Data:Any,ResourceType> runLoadPath(
+    private fun <Data : Any, ResourceType> runLoadPath(
         data: Data,
         dataSource: DataSource,
         path: LoadPath<Data, ResourceType, R>
     ): Resource<R>? {
-        val rewinder =glideContext!!.getRegistry().getRewinder(data);
+        val rewinder = glideContext!!.getRegistry().getRewinder(data);
         try {
             return path.load(
                 rewinder,
@@ -355,7 +359,7 @@ class DecodeJob<R>(
 
     private inner class DecodeCallback<Z>(val dataSource: DataSource) :
         DecodePath.DecodeCallback<Z> {
-        override fun onResourceDecoded(decoded: Resource<Z>?): Resource<Z> ?{
+        override fun onResourceDecoded(decoded: Resource<Z>?): Resource<Z>? {
             printThis("DecodeJob.onResourceDecoded")
             return this@DecodeJob.onResourceDecoded(dataSource, decoded)
         }
@@ -365,5 +369,16 @@ class DecodeJob<R>(
     private fun <Z> onResourceDecoded(dataSource: DataSource, decoded: Resource<Z>?): Resource<Z>? {
         printThis("decoded =${decoded?.get()}")
         return decoded
+    }
+
+    private class DeferredEncodeManager<Z>(
+        var key: Key,
+        var encoder: ResourceEncoder<Z>,
+        var toEncode: LockedResource<Z>
+    ) {
+
+        fun <X> init( key: Key,  encoder: ResourceEncoder<X>, toEncode: LockedResource<X> ){
+
+        }
     }
 }
