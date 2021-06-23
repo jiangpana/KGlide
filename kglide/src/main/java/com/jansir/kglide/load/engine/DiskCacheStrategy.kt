@@ -7,7 +7,7 @@ import com.jansir.kglide.load.EncodeStrategy
 abstract class DiskCacheStrategy {
 
 
-    companion object{
+    companion object {
         val AUTOMATIC = object : DiskCacheStrategy() {
             override fun isDataCacheable(dataSource: DataSource?): Boolean {
                 return dataSource == DataSource.REMOTE
@@ -18,7 +18,7 @@ abstract class DiskCacheStrategy {
                 dataSource: DataSource?,
                 encodeStrategy: EncodeStrategy?
             ): Boolean {
-                return true
+                return (encodeStrategy === EncodeStrategy.TRANSFORMED) && ((isFromAlternateCacheKey && dataSource === DataSource.DATA_DISK_CACHE) || dataSource === DataSource.LOCAL)
             }
 
             override fun decodeCachedResource(): Boolean {
@@ -31,12 +31,14 @@ abstract class DiskCacheStrategy {
             }
         }
     }
+
     abstract fun isDataCacheable(dataSource: DataSource?): Boolean
     abstract fun isResourceCacheable(
         isFromAlternateCacheKey: Boolean,
         dataSource: DataSource?,
         encodeStrategy: EncodeStrategy?
     ): Boolean
+
     abstract fun decodeCachedResource(): Boolean
     abstract fun decodeCachedData(): Boolean
 }

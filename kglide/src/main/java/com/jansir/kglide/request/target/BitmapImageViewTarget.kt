@@ -5,7 +5,7 @@ import android.graphics.drawable.Drawable
 import android.widget.ImageView
 
 class BitmapImageViewTarget(
-    override val view: ImageView,
+     view: ImageView,
     override val currentDrawable: Drawable = view.drawable
 ) : ImageViewTarget<Bitmap>(view) {
     override fun setResource(resource: Bitmap?) {

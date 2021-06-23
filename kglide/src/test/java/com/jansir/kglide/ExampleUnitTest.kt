@@ -10,12 +10,21 @@ import org.junit.Test
 class ExampleUnitTest {
     @Test
     fun addition_isCorrect() {
-        for (i in 0..100){
-            printThis((0..1).random().toString())
+
+        val b =Person.Man
+        val a =Person.Women
+        print("${b==a}")
+        when (a) {
+            Person.Man  -> print("Man")
+            Person.Women  -> print("Women")
         }
     }
 
 }
 fun Any.printThis(message: String) {
     println("${javaClass.simpleName} -> $message")
+}
+enum class Person {
+    Women ,
+    Man
 }

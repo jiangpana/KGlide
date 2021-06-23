@@ -12,10 +12,12 @@ import com.jansir.kglide.load.engine.bitmap_recycle.ArrayPool
 import com.jansir.kglide.load.engine.bitmap_recycle.BitmapPool
 import com.jansir.kglide.load.engine.cache.MemoryCache
 import com.jansir.kglide.load.model.KGlideUrl
+import com.jansir.kglide.load.model.StreamEncoder
 import com.jansir.kglide.load.model.StringLoader
 import com.jansir.kglide.load.model.stream.HttpGlideUrlLoader
 import com.jansir.kglide.load.model.stream.HttpUriLoader
 import com.jansir.kglide.load.resource.bitmap.BitmapDrawableDecoder
+import com.jansir.kglide.load.resource.bitmap.BitmapEncoder
 import com.jansir.kglide.load.resource.bitmap.Downsampler
 import com.jansir.kglide.load.resource.bitmap.StreamBitmapDecoder
 import com.jansir.kglide.load.resource.transcode.BitmapDrawableTranscoder
@@ -35,7 +37,7 @@ class KGlide(
     val arrayPool: ArrayPool,
     val requestOptionsFactory: RequestOptionsFactory
 ) {
-    private var glideContext = GlideContext(context)
+    private var glideContext = GlideContext(context,arrayPool)
 
     init {
         val resources =context.resources
@@ -69,6 +71,15 @@ class KGlide(
                 BitmapDrawableTranscoder(resources)
             )
             register(InputStreamRewinder.Factory(arrayPool))
+
+            //source encoder
+            append(InputStream::class.java , StreamEncoder(arrayPool))
+
+            //resource encoder
+            val bitmapEncoder = BitmapEncoder(arrayPool)
+            append(Bitmap::class.java,bitmapEncoder)
+
+
         }
     }
 

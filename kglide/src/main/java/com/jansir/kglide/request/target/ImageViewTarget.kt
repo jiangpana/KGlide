@@ -5,7 +5,7 @@ import android.widget.ImageView
 import com.jansir.kglide.ext.printThis
 import com.jansir.kglide.request.transition.Transition
 
-abstract class ImageViewTarget<Z>(override val view: ImageView) : ViewTarget<ImageView, Z>(view) {
+abstract class ImageViewTarget<Z>( view: ImageView) : ViewTarget<ImageView, Z>(view) {
 
     private fun setResourceInternal(resource: Z?) {
         // Order matters here. Set the resource first to make sure that the Drawable has a valid and

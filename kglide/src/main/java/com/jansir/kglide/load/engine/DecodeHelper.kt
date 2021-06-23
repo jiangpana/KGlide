@@ -2,14 +2,14 @@ package com.jansir.kglide.load.engine
 
 import com.jansir.kglide.GlideContext
 import com.jansir.kglide.Priority
-import com.jansir.kglide.load.Key
-import com.jansir.kglide.load.Options
-import com.jansir.kglide.load.Transformation
+import com.jansir.kglide.load.*
+import com.jansir.kglide.load.engine.bitmap_recycle.ArrayPool
 import com.jansir.kglide.load.model.ModelLoader
 import java.util.*
 
 class DecodeHelper<Transcode> {
 
+    private lateinit var transformations: Map<Class<*>, Transformation<*>>
     private lateinit var resourceClass: Class<*>
     private lateinit var transcodeClass: Class<Transcode>
     private lateinit var priority: Priority
@@ -47,6 +47,7 @@ class DecodeHelper<Transcode> {
         this.diskCacheStrategy = diskCacheStrategy
         this.resourceClass = resourceClass
         this.transcodeClass = transcodeClass
+        this.transformations = transformations
     }
 
 
@@ -81,5 +82,40 @@ class DecodeHelper<Transcode> {
     //transcodeClass = drawable ,
     fun <Data> getLoadPath(dataClass: Class<Data>): LoadPath<Data, *, Transcode> {
         return glideContext.getRegistry().getLoadPath(dataClass, resourceClass, transcodeClass)!!
+    }
+
+    fun <Z> getTransformation(resourceSubClass: Class<Z>): Transformation<Z>? {
+        try {
+            return transformations[resourceClass] as Transformation<Z>
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return null
+    }
+
+    fun isResourceEncoderAvailable(resource: Resource<*>?): Boolean {
+        return glideContext.getRegistry().isResourceEncoderAvailable(resource!!)
+
+    }
+
+    fun <Z> getResultEncoder(resource: Resource<Z>?): ResourceEncoder<Z>? {
+        return glideContext.getRegistry().getResultEncoder(resource)
+    }
+
+    fun isSourceKey(key: Key): Boolean {
+        getLoadData().forEach {
+            if (it.sourceKey == key) {
+                return true
+            }
+        }
+        return false
+    }
+
+    fun getArrayPool(): ArrayPool {
+        return glideContext.arrayPool
+    }
+
+    fun <X> getSourceEncoder(data: X): Encoder<X> {
+        return glideContext.getRegistry().getSourceEncoder(data)
     }
 }

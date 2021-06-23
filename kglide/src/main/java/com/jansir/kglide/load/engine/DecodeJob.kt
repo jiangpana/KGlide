@@ -12,6 +12,7 @@ class DecodeJob<R>(
     val diskCacheProvider: DiskCacheProvider,
     val pool: Pools.Pool<DecodeJob<*>>
 ) : Runnable, Comparable<DecodeJob<*>>, DataFetcherGenerator.FetcherReadyCallback {
+    private var currentSourceKey: Key? = null
     private var glideContext: GlideContext? = null
     private var signature: Key? = null
     private lateinit var priority: Priority
@@ -30,6 +31,9 @@ class DecodeJob<R>(
     private var currentThread: Thread? = null
     private var currentData: Any? = null
     private var currentDataSource: DataSource? = null
+    private val deferredEncodeManager by lazy {
+        DeferredEncodeManager<Any>()
+    }
 
     override fun run() {
         println("DecodeJob #run . thread name ->${Thread.currentThread().name}")
@@ -56,16 +60,19 @@ class DecodeJob<R>(
 
     private fun runWrapped() {
         when (runReason) {
+            //初始化,处理磁盘缓存
             RunReason.INITIALIZE -> {
                 stage = getNextStage(Stage.INITIALIZE)
                 currentGenerator = getNextGenerator()
                 runGenerators()
             }
+            //切换到source
             RunReason.SWITCH_TO_SOURCE_SERVICE -> {
                 runGenerators()
             }
+            //解码
             RunReason.DECODE_DATA -> {
-
+                decodeFromRetrievedData()
             }
         }
     }
@@ -133,7 +140,7 @@ class DecodeJob<R>(
     }
 
     private fun notifyFailed() {
-        callback!!.onLoadFailed(java.lang.Exception(""))
+        callback!!.onLoadFailed(java.lang.Exception("notifyFailed"))
         onLoadFailed()
     }
 
@@ -262,6 +269,7 @@ class DecodeJob<R>(
         dataSource: DataSource?,
         attemptedKey: Key
     ) {
+        this.currentSourceKey = sourceKey
         currentData = data
         currentDataSource = dataSource;
         currentFetcher = fetcher
@@ -366,19 +374,82 @@ class DecodeJob<R>(
 
     }
 
+    //todo lru磁盘缓存
     private fun <Z> onResourceDecoded(dataSource: DataSource, decoded: Resource<Z>?): Resource<Z>? {
         printThis("decoded =${decoded?.get()}")
-        return decoded
+        //1,先进行transforme ,resource cache跳过transforme
+        val resourceSubClass = (decoded!!.get() as Any).javaClass
+        printThis("resourceSubClass = ${resourceSubClass}")
+        printThis("resourceSubClass.simpleName = ${resourceSubClass.simpleName}")
+        var transformed = decoded
+        var appliedTransformation: Transformation<Z>? = null
+        if (dataSource != DataSource.RESOURCE_DISK_CACHE) {
+            //RESOURCE_DISK_CACHE ,不需要 transformed
+            appliedTransformation = decodeHelper.getTransformation(resourceSubClass as Class<Z>)
+            transformed = appliedTransformation?.transform(glideContext!!, decoded, width, height) ?:decoded
+        }
+        //2 , 初始化encoder
+        val encodeStrategy: EncodeStrategy
+        val encoder: ResourceEncoder<Z>?
+        if (decodeHelper.isResourceEncoderAvailable(transformed)) {
+            encoder = decodeHelper.getResultEncoder(transformed)
+            encodeStrategy = encoder!!.getEncodeStrategy(options!!)
+        } else {
+            encoder = null
+            encodeStrategy = EncodeStrategy.NONE
+        }
+
+        var result = transformed
+        val isFromAlternateCacheKey: Boolean = !decodeHelper.isSourceKey(currentSourceKey!!)
+
+        //3 ,初始化磁盘缓存deferredEncodeManager
+        if (diskCacheStrategy.isResourceCacheable(
+                isFromAlternateCacheKey,
+                dataSource,
+                encodeStrategy
+            )
+        ) {
+            val key: Key
+            when (encodeStrategy) {
+                EncodeStrategy.TRANSFORMED -> key = DataCacheKey(currentSourceKey!!, signature!!);
+                EncodeStrategy.SOURCE -> key = ResourceCacheKey(decodeHelper.getArrayPool(),
+                    currentSourceKey!!,
+                    signature!!,
+                    width,
+                    height,
+                    appliedTransformation,
+                    resourceSubClass,
+                    options!!)
+                else -> throw IllegalArgumentException("Unknown strategy: $encodeStrategy")
+            }
+
+            val lockedResult = LockedResource.obtain(transformed)
+            deferredEncodeManager.init(key, encoder!!, lockedResult)
+            result = lockedResult
+        }
+        return result
     }
 
-    private class DeferredEncodeManager<Z>(
-        var key: Key,
-        var encoder: ResourceEncoder<Z>,
-        var toEncode: LockedResource<Z>
-    ) {
+    private class DeferredEncodeManager<Z>() {
 
-        fun <X> init( key: Key,  encoder: ResourceEncoder<X>, toEncode: LockedResource<X> ){
+        private var key: Key? = null
+        private var encoder: ResourceEncoder<Z>? = null
+        private var toEncode: LockedResource<Z>? = null
 
+        fun hasResourceToEncode(): Boolean {
+            return toEncode != null
+        }
+
+        fun clear() {
+            key = null
+            encoder = null
+            toEncode = null
+        }
+
+        fun <X> init(key: Key, encoder: ResourceEncoder<X>, toEncode: LockedResource<X>) {
+            this.key = key
+            this.encoder = encoder as ResourceEncoder<Z>
+            this.toEncode = toEncode as LockedResource<Z>
         }
     }
 }
