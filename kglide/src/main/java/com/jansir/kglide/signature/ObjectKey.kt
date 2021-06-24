@@ -5,7 +5,7 @@ import java.security.MessageDigest
 
 class ObjectKey(val obj :Any) :Key {
     override fun updateDiskCacheKey(messageDigest: MessageDigest) {
-        messageDigest.update(obj.toString().toByte())
+        messageDigest.update(obj.toString().toByteArray())
     }
 
     override fun equals(o: Any?): Boolean {

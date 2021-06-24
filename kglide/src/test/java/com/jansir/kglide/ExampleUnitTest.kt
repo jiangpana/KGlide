@@ -1,6 +1,9 @@
 package com.jansir.kglide
 
 import org.junit.Test
+import java.nio.charset.Charset
+import java.security.MessageDigest
+import kotlin.text.Charsets.UTF_8
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -18,6 +21,13 @@ class ExampleUnitTest {
             Person.Man  -> print("Man")
             Person.Women  -> print("Women")
         }
+
+      val messageDigest =  MessageDigest.getInstance("SHA-256")
+        messageDigest.update("ggdsgdfgdyreyyerytyrty".toByteArray(UTF_8))
+        messageDigest.update("ggdsgdfgdyreyyerytyrty".toByteArray(UTF_8))
+        messageDigest.update("ggdsgdfgdyreyyerytyrty".toByteArray(UTF_8))
+        messageDigest.update("ggdsgdfgdyreyyerytyrty".toByteArray(UTF_8))
+        println("messageDigest = ${messageDigest.digest().toString(UTF_8)}")
     }
 
 }
