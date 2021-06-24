@@ -36,7 +36,7 @@ class DecodeJob<R>(
     }
 
     override fun run() {
-        println("DecodeJob #run . thread name ->${Thread.currentThread().name}")
+        printThis("run() , thread name =${Thread.currentThread().name}")
         val localFetcher = currentFetcher
         try {
             if (isCancelled) {
@@ -103,7 +103,7 @@ class DecodeJob<R>(
                 ResourceCacheGenerator(decodeHelper, this)
             }
             Stage.DATA_CACHE -> {
-                DataCacheGenerator(decodeHelper, this)
+                DataCacheGenerator(helper = decodeHelper, cb = this)
             }
             Stage.SOURCE -> {
                 SourceGenerator(decodeHelper, this)
@@ -140,6 +140,7 @@ class DecodeJob<R>(
     }
 
     private fun notifyFailed() {
+        printThis("notifyFailed")
         callback!!.onLoadFailed(java.lang.Exception("notifyFailed"))
         onLoadFailed()
     }
@@ -274,6 +275,7 @@ class DecodeJob<R>(
         currentDataSource = dataSource;
         currentFetcher = fetcher
         if (Thread.currentThread() !== currentThread) {
+            printThis("切换线程 reschedule")
             runReason = RunReason.DECODE_DATA
             callback!!.reschedule(this)
         } else {
@@ -286,6 +288,7 @@ class DecodeJob<R>(
     }
 
     private fun decodeFromRetrievedData() {
+        printThis("decodeFromRetrievedData()")
         var resource: Resource<R>? = null
         try {
             resource = decodeFromData(currentFetcher, currentData, currentDataSource!!)
@@ -304,10 +307,24 @@ class DecodeJob<R>(
         val result = resource
         notifyComplete(result, dataSource)
         stage = Stage.ENCODE
-//        deferredEncodeManager
+        try {
+            if (deferredEncodeManager.hasResourceToEncode()) {
+                deferredEncodeManager.encode(diskCacheProvider, options!!)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        // Call onEncodeComplete outside the finally block so that it's not called if the encode process
+        // throws.
+        onEncodeComplete()
+    }
+
+    private fun onEncodeComplete() {
+
     }
 
     private fun notifyComplete(result: Resource<R>, dataSource: DataSource) {
+        printThis("notifyComplete()")
         callback!!.onResourceReady(result, dataSource)
     }
 
@@ -333,6 +350,7 @@ class DecodeJob<R>(
     }
 
     private fun <Data : Any> decodeFromFetcher(data: Data, dataSource: DataSource): Resource<R>? {
+        printThis("decodeFromFetcher()")
         val path = decodeHelper.getLoadPath(data.javaClass)
         return runLoadPath(data, dataSource, path)
     }
@@ -400,9 +418,10 @@ class DecodeJob<R>(
         }
 
         var result = transformed
+        //为 true 则启动磁盘缓存
         val isFromAlternateCacheKey: Boolean = !decodeHelper.isSourceKey(currentSourceKey!!)
 
-        //3 ,初始化磁盘缓存deferredEncodeManager
+        //3 ,初始化磁盘缓存deferredEncodeManager ,RESOURCE_DISK_CACHE则为false
         if (diskCacheStrategy.isResourceCacheable(
                 isFromAlternateCacheKey,
                 dataSource,
@@ -450,6 +469,12 @@ class DecodeJob<R>(
             this.key = key
             this.encoder = encoder as ResourceEncoder<Z>
             this.toEncode = toEncode as LockedResource<Z>
+        }
+
+        fun encode(diskCacheProvider: DiskCacheProvider, options: Options) {
+            diskCacheProvider
+                .diskCache
+                .put(key, DataCacheWriter(encoder!!, toEncode!!, options))
         }
     }
 }

@@ -17,17 +17,22 @@ class SourceGenerator(
 
     @Volatile
     private var loadData: ModelLoader.LoadData<*>? = null
-    private val sourceCacheGenerator: DataCacheGenerator? = null
+    private var sourceCacheGenerator: DataCacheGenerator? = null
     private var dataToCache: Any? = null
     private var loadDataListIndex = 0
 
     override fun startNext(): Boolean {
-        printThis("startNext ->" +Thread.currentThread().name)
+        printThis("startNext() " +Thread.currentThread().name)
         if (dataToCache!=null){
             val data: Any = dataToCache!!
             dataToCache = null
             cacheData(data)
         }
+        if (sourceCacheGenerator != null && sourceCacheGenerator!!.startNext()) {
+            return true
+        }
+        sourceCacheGenerator = null
+
         loadData = null
         var started = false
         while (!started && hasNextModelLoader()) {
@@ -45,7 +50,19 @@ class SourceGenerator(
     }
 
     private fun cacheData(data: Any) {
-       val encoder = helper.getSourceEncoder(dataToCache);
+        try {
+            printThis("startNext ->" +Thread.currentThread().name +" -> cacheData()")
+            val encoder = helper.getSourceEncoder(data);
+            val writer =DataCacheWriter(encoder, data, helper.options);
+            printThis("loadData.sourceKey =${loadData!!.sourceKey.javaClass.simpleName} ")
+            //loadData!!.sourceKey = KGlideUrl
+            val originalKey = DataCacheKey(loadData!!.sourceKey, helper.signature)
+            helper.getDiskCache().put(originalKey, writer)
+            printThis("${encoder.javaClass.simpleName}")
+        } finally {
+            loadData?.fetcher?.cleanup()
+        }
+        sourceCacheGenerator = DataCacheGenerator(cacheKeys =listOf(loadData!!.sourceKey), helper = helper, cb =this)
     }
 
     private fun startNextLoad(loadData: ModelLoader.LoadData<*>) {
@@ -111,6 +128,15 @@ class SourceGenerator(
         dataSource: DataSource?,
         attemptedKey: Key
     ) {
+        // This data fetcher will be loading from a File and provide the wrong data source, so override
+        // with the data source of the original fetcher
+        cb.onDataFetcherReady(
+            sourceKey,
+            data,
+            fetcher,
+            loadData!!.fetcher.getDataSource(),
+            sourceKey
+        )
     }
 
     override fun onDataFetcherFailed(

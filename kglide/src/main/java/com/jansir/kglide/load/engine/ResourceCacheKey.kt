@@ -19,6 +19,8 @@ class ResourceCacheKey(
 ) : Key {
     val RESOURCE_CLASS_BYTES = LruCache<Class<*>, ByteArray>(50);
     override fun updateDiskCacheKey(messageDigest: MessageDigest) {
+        signature.updateDiskCacheKey(messageDigest)
+        sourceKey.updateDiskCacheKey(messageDigest)
     }
 
     override fun equals(o: Any?): Boolean {

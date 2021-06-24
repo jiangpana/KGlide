@@ -5,7 +5,7 @@ import java.io.File
 
 interface DiskCache {
     interface Factory {
-        fun build(): DiskCache
+        fun build(): DiskCache?
 
         companion object {
             /** 250 MB of cache.  */

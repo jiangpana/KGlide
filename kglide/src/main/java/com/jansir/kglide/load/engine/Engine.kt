@@ -36,7 +36,7 @@ class Engine(
         if (decodeJobFactory == null) {
             decodeJobFactory = DecodeJobFactory(
                 diskCacheProvider = LazyDiskCacheProvider(
-                    diskCacheFactory.build()
+                    diskCacheFactory.build()!!
                 )
             )
         }

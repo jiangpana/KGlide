@@ -14,6 +14,7 @@ class BitmapEncoder(val arrayPool:ArrayPool): ResourceEncoder<Bitmap> {
         return EncodeStrategy.TRANSFORMED
     }
 
-    override fun encode(data: Resource<Bitmap>, file: File, options: Options) {
+    override fun encode(data: Resource<Bitmap>, file: File, options: Options) :Boolean{
+        return true
     }
 }

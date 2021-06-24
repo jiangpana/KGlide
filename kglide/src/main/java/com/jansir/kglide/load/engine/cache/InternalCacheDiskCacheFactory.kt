@@ -2,23 +2,23 @@ package com.jansir.kglide.load.engine.cache
 
 import android.content.Context
 import com.jansir.kglide.load.Key
+import com.jansir.kglide.load.engine.cache.DiskCache.Factory.Companion.DEFAULT_DISK_CACHE_DIR
+import com.jansir.kglide.load.engine.cache.DiskCache.Factory.Companion.DEFAULT_DISK_CACHE_SIZE
 import java.io.File
 
-class InternalCacheDiskCacheFactory(val context: Context): DiskCache.Factory {
-    override fun build(): DiskCache {
-        return object :DiskCache{
-            override fun get(key: Key): File? {
-                return null
+class InternalCacheDiskCacheFactory(
+    context: Context,
+    diskCacheName: String = DEFAULT_DISK_CACHE_DIR,
+    diskCacheSize: Long = DEFAULT_DISK_CACHE_SIZE.toLong()
+) : DiskLruCacheFactory(object : CacheDirectoryGetter {
+    override val cacheDirectory: File?
+        get() {
+            val cacheDirectory = context.cacheDir ?: return null;
+            if (diskCacheName.isNotBlank()) {
+                return File(cacheDirectory, diskCacheName)
             }
-
-            override fun put(key: Key?, writer: DiskCache.Writer) {
-            }
-
-            override fun delete(key: Key) {
-            }
-
-            override fun clear() {
-            }
+            return cacheDirectory
         }
-    }
+
+}, diskCacheSize) {
 }

@@ -11,6 +11,7 @@ import com.jansir.kglide.load.engine.Engine
 import com.jansir.kglide.load.engine.bitmap_recycle.ArrayPool
 import com.jansir.kglide.load.engine.bitmap_recycle.BitmapPool
 import com.jansir.kglide.load.engine.cache.MemoryCache
+import com.jansir.kglide.load.model.FileLoader
 import com.jansir.kglide.load.model.KGlideUrl
 import com.jansir.kglide.load.model.StreamEncoder
 import com.jansir.kglide.load.model.StringLoader
@@ -24,6 +25,7 @@ import com.jansir.kglide.load.resource.transcode.BitmapDrawableTranscoder
 import com.jansir.kglide.manager.ConnectivityMonitorFactory
 import com.jansir.kglide.manager.RequestManagerRetriever
 import com.jansir.kglide.request.RequestOptions
+import java.io.File
 import java.io.InputStream
 
 
@@ -46,6 +48,7 @@ class KGlide(
             append(String::class.java, InputStream::class.java, StringLoader.StreamFactory())
             append(Uri::class.java, InputStream::class.java, HttpUriLoader.Factory())
             append(KGlideUrl::class.java, InputStream::class.java, HttpGlideUrlLoader.Factory())
+            append(File::class.java, InputStream::class.java,  FileLoader.StreamFactory())
 
             //decode
             val streamBitmapDecoder: ResourceDecoder<InputStream, Bitmap>

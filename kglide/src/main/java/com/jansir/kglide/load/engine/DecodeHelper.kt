@@ -2,20 +2,26 @@ package com.jansir.kglide.load.engine
 
 import com.jansir.kglide.GlideContext
 import com.jansir.kglide.Priority
+import com.jansir.kglide.Registry
+import com.jansir.kglide.ext.printThis
 import com.jansir.kglide.load.*
 import com.jansir.kglide.load.engine.bitmap_recycle.ArrayPool
+import com.jansir.kglide.load.engine.cache.DiskCache
 import com.jansir.kglide.load.model.ModelLoader
+import java.io.File
 import java.util.*
 
 class DecodeHelper<Transcode> {
 
+    private lateinit var diskCacheProvider: DecodeJob.DiskCacheProvider
+    lateinit var signature: Key
     private lateinit var transformations: Map<Class<*>, Transformation<*>>
     private lateinit var resourceClass: Class<*>
     private lateinit var transcodeClass: Class<Transcode>
     private lateinit var priority: Priority
-    private lateinit var options: Options
-    private var width: Int = 0
-    private var height: Int = 0
+    lateinit var options: Options
+    var width: Int = 0
+    var height: Int = 0
     private lateinit var model: Any
     private lateinit var glideContext: GlideContext
     private lateinit var diskCacheStrategy: DiskCacheStrategy
@@ -48,6 +54,8 @@ class DecodeHelper<Transcode> {
         this.resourceClass = resourceClass
         this.transcodeClass = transcodeClass
         this.transformations = transformations
+        this.signature =signature
+        this.diskCacheProvider=diskCacheProvider
     }
 
 
@@ -86,7 +94,7 @@ class DecodeHelper<Transcode> {
 
     fun <Z> getTransformation(resourceSubClass: Class<Z>): Transformation<Z>? {
         try {
-            return transformations[resourceClass] as Transformation<Z>
+            return transformations[resourceClass] as Transformation<Z>?
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -105,6 +113,7 @@ class DecodeHelper<Transcode> {
     fun isSourceKey(key: Key): Boolean {
         getLoadData().forEach {
             if (it.sourceKey == key) {
+                printThis("isSourceKey = true")
                 return true
             }
         }
@@ -117,5 +126,14 @@ class DecodeHelper<Transcode> {
 
     fun <X> getSourceEncoder(data: X): Encoder<X> {
         return glideContext.getRegistry().getSourceEncoder(data)
+    }
+
+    fun getDiskCache(): DiskCache {
+        return diskCacheProvider.diskCache
+    }
+
+
+    fun getModelLoaders(file: File): List<ModelLoader<File, *>> {
+        return glideContext.getRegistry().getModelLoaders(file)
     }
 }
