@@ -45,6 +45,10 @@ class ModelLoaderRegistry(val throwableListPool: Pools.Pool<List<Throwable>>? = 
         return model.javaClass
     }
 
+    fun <Model> getDataClasses(modelClass: Class<Model>): List<Class<*>> {
+        return multiModelLoaderFactory.getDataClasses(modelClass);
+    }
+
     class ModelLoaderCache() {
         private val cachedModelLoaders = hashMapOf<Class<*>, Entry<*>>()
         fun clear() {

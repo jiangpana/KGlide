@@ -55,6 +55,17 @@ class MultiModelLoaderFactory (val throwableListPool : Pools.Pool<List<Throwable
         }
         return loaders
     }
+
+    fun <Model> getDataClasses(modelClass: Class<Model>): List<Class<*>> {
+        val result = ArrayList<Class<*>>()
+        entries.forEach {entry->
+            if (!result.contains(entry.dataClass) && entry.handles(modelClass)) {
+                result.add(entry.dataClass)
+            }
+        }
+        return result
+    }
+
     class Factory {
         fun <Model, Data> build(
             modelLoaders: List<ModelLoader<Model, Data>>,

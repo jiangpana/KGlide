@@ -1,5 +1,6 @@
 package com.jansir.kglide
 
+import com.jansir.kglide.ext.printThis
 import com.jansir.kglide.load.Encoder
 import com.jansir.kglide.load.ResourceDecoder
 import com.jansir.kglide.load.ResourceEncoder
@@ -72,13 +73,17 @@ class Registry {
     }
 
     //encoder
-    fun <TResource>append(resourceClass: Class<TResource>, encoder: ResourceEncoder<TResource>): Registry{
-        resourceEncoderRegistry.append(resourceClass,encoder)
+    fun <TResource> append(
+        resourceClass: Class<TResource>,
+        encoder: ResourceEncoder<TResource>
+    ): Registry {
+        resourceEncoderRegistry.append(resourceClass, encoder)
         return this
     }
+
     //source encoder
-    fun <Data>append(dataClass: Class<Data>, encoder: Encoder<Data>): Registry{
-        encoderRegistry.append(dataClass,encoder)
+    fun <Data> append(dataClass: Class<Data>, encoder: Encoder<Data>): Registry {
+        encoderRegistry.append(dataClass, encoder)
         return this
     }
 
@@ -133,12 +138,12 @@ class Registry {
         return decodePaths
     }
 
-    fun <Data:Any> getRewinder(data: Data): DataRewinder<Data>{
+    fun <Data : Any> getRewinder(data: Data): DataRewinder<Data> {
         return dataRewinderRegistry.build(data)
     }
 
     fun isResourceEncoderAvailable(resource: Resource<*>): Boolean {
-       return resourceEncoderRegistry.get(resource.getResourceClass()) != null
+        return resourceEncoderRegistry.get(resource.getResourceClass()) != null
     }
 
     fun <Z> getResultEncoder(resource: Resource<Z>?): ResourceEncoder<Z>? {
@@ -151,11 +156,38 @@ class Registry {
     }
 
 
-    fun <X > getSourceEncoder(data: X): Encoder<X>{
+    fun <X> getSourceEncoder(data: X): Encoder<X> {
         val encoder: Encoder<X>? = encoderRegistry.getEncoder((data as Any).javaClass as Class<X>)
         if (encoder != null) {
             return encoder
         }
         throw Exception("没有找到SourceEncoder")
+    }
+
+    fun <Model, TResource, Transcode> getRegisteredResourceClasses(
+        modelClass: Class<Model>,
+        resourceClass: Class<TResource>,
+        transcodeClass: Class<Transcode>
+    ): List<Class<*>> {
+        val result = arrayListOf<Class<*>>()
+
+        val dataClasses = modelLoaderRegistry.getDataClasses(modelClass);
+        for (dataClass in dataClasses) {
+            val registeredResourceClasses =
+                decoderRegistry.getResourceClasses(dataClass, resourceClass);
+            for (registeredResourceClass in registeredResourceClasses) {
+                val registeredTranscodeClasses =
+                    transcoderRegistry.getTranscodeClasses(registeredResourceClass, transcodeClass);
+                if (registeredTranscodeClasses.isNotEmpty() && !result.contains(
+                        registeredResourceClass
+                    )
+                ) {
+                    printThis(" result.add() ,registeredResourceClass =${ registeredResourceClass.simpleName}")
+                    result.add(registeredResourceClass)
+                }
+            }
+        }
+
+        return result
     }
 }

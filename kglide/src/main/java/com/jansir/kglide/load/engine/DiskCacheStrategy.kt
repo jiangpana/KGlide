@@ -30,6 +30,29 @@ abstract class DiskCacheStrategy {
 
             }
         }
+
+        val RESOURCE =object : DiskCacheStrategy() {
+            override fun isDataCacheable(dataSource: DataSource?): Boolean {
+                return false
+            }
+
+            override fun isResourceCacheable(
+                isFromAlternateCacheKey: Boolean,
+                dataSource: DataSource?,
+                encodeStrategy: EncodeStrategy?
+            ): Boolean {
+                return dataSource!=DataSource.RESOURCE_DISK_CACHE && dataSource!=DataSource.MEMORY_CACHE
+            }
+
+            override fun decodeCachedResource(): Boolean {
+                return true
+            }
+
+            override fun decodeCachedData(): Boolean {
+                return false
+            }
+
+        }
     }
 
     abstract fun isDataCacheable(dataSource: DataSource?): Boolean

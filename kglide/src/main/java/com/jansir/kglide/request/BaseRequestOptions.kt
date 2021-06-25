@@ -56,7 +56,7 @@ abstract class BaseRequestOptions<T : BaseRequestOptions<T>> {
     }
 
     fun getDiskCacheStrategy(): DiskCacheStrategy {
-        return DiskCacheStrategy.AUTOMATIC
+        return DiskCacheStrategy.RESOURCE
     }
 
     fun getTransformations(): Map<Class<*>, Transformation<*>> {

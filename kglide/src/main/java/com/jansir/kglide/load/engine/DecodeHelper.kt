@@ -2,7 +2,6 @@ package com.jansir.kglide.load.engine
 
 import com.jansir.kglide.GlideContext
 import com.jansir.kglide.Priority
-import com.jansir.kglide.Registry
 import com.jansir.kglide.ext.printThis
 import com.jansir.kglide.load.*
 import com.jansir.kglide.load.engine.bitmap_recycle.ArrayPool
@@ -27,7 +26,7 @@ class DecodeHelper<Transcode> {
     private lateinit var diskCacheStrategy: DiskCacheStrategy
     private val loadData = ArrayList<ModelLoader.LoadData<*>>()
     private var isLoadDataSet = false
-
+    private var isCacheKeysSet = false
     fun init(
         glideContext: GlideContext,
         model: Any,
@@ -135,5 +134,33 @@ class DecodeHelper<Transcode> {
 
     fun getModelLoaders(file: File): List<ModelLoader<File, *>> {
         return glideContext.getRegistry().getModelLoaders(file)
+    }
+    private val cacheKeys = ArrayList<Key>()
+
+    fun getCacheKeys(): List<Key> {
+        if (!isCacheKeysSet) {
+            isCacheKeysSet = true
+            cacheKeys.clear()
+            val loadData = getLoadData();
+            loadData.forEach {
+                if (!cacheKeys.contains(it.sourceKey)) {
+                    cacheKeys.add(it.sourceKey)
+                }
+                it.alternateKeys.forEach {alternateKey->
+                    if (!cacheKeys.contains(alternateKey)){
+                        cacheKeys.add(alternateKey)
+                    }
+                }
+            }
+        }
+
+        return cacheKeys
+    }
+
+
+    fun getRegisteredResourceClasses(): List<Class<*>> {
+        return glideContext
+            .getRegistry()
+            .getRegisteredResourceClasses(model.javaClass, resourceClass, transcodeClass)
     }
 }

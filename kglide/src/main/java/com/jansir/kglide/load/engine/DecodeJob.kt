@@ -404,7 +404,8 @@ class DecodeJob<R>(
         if (dataSource != DataSource.RESOURCE_DISK_CACHE) {
             //RESOURCE_DISK_CACHE ,不需要 transformed
             appliedTransformation = decodeHelper.getTransformation(resourceSubClass as Class<Z>)
-            transformed = appliedTransformation?.transform(glideContext!!, decoded, width, height) ?:decoded
+            transformed =
+                appliedTransformation?.transform(glideContext!!, decoded, width, height) ?: decoded
         }
         //2 , 初始化encoder
         val encodeStrategy: EncodeStrategy
@@ -430,15 +431,17 @@ class DecodeJob<R>(
         ) {
             val key: Key
             when (encodeStrategy) {
-                EncodeStrategy.TRANSFORMED -> key = DataCacheKey(currentSourceKey!!, signature!!);
-                EncodeStrategy.SOURCE -> key = ResourceCacheKey(decodeHelper.getArrayPool(),
+                EncodeStrategy.SOURCE -> key = DataCacheKey(currentSourceKey!!, signature!!);
+                EncodeStrategy.TRANSFORMED -> key = ResourceCacheKey(
+                    decodeHelper.getArrayPool(),
                     currentSourceKey!!,
                     signature!!,
                     width,
                     height,
                     appliedTransformation,
                     resourceSubClass,
-                    options!!)
+                    options!!
+                )
                 else -> throw IllegalArgumentException("Unknown strategy: $encodeStrategy")
             }
 

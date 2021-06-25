@@ -2,6 +2,7 @@ package com.jansir.kglide.load.data
 
 import android.text.TextUtils
 import com.jansir.kglide.Priority
+import com.jansir.kglide.ext.printThis
 import com.jansir.kglide.load.DataSource
 import com.jansir.kglide.load.model.KGlideUrl
 import com.jansir.kglide.util.ContentLengthInputStream
@@ -26,7 +27,7 @@ class HttpUrlFetcher(val glideUrl: KGlideUrl) : DataFetcher<InputStream> {
     override fun loadData(priority: Priority, callback: DataFetcher.DataCallback<in InputStream>) {
         println("HttpUrlFetcher priority")
         try {
-            val result = loadDataWithRedirects(URL(glideUrl.url), 0, null, emptyMap())
+            val result = loadDataWithRedirects(glideUrl.toURL(), 0, null, glideUrl.getHeaders())
             result?.let {
                 callback.onDataReady(it)
             }
@@ -44,6 +45,7 @@ class HttpUrlFetcher(val glideUrl: KGlideUrl) : DataFetcher<InputStream> {
         urlConnection = connectionFactory.build(url)
         // 添加头部
         for ((key, value) in headers) {
+            printThis("header , key =$key value=$value")
             urlConnection.addRequestProperty(key, value)
         }
 

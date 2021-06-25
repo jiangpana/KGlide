@@ -83,7 +83,7 @@ class LazyHeaders(val lazyHeaders: Map<String, List<LazyHeaderFactory>>) : Heade
             init {
                 if (!TextUtils.isEmpty(DEFAULT_USER_AGENT)) {
                     DEFAULT_HEADERS[USER_AGENT_HEADER] =
-                        mutableListOf(LazyHeaders.StringHeaderFactory(DEFAULT_USER_AGENT))
+                        mutableListOf(StringHeaderFactory(DEFAULT_USER_AGENT))
                 }
 
             }

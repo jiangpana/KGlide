@@ -37,6 +37,7 @@ class DiskLruCacheWrapper (val directory:File , val maxSize:Long ): DiskCache {
 
     override fun get(key: Key): File? {
         val safeKey = safeKeyGenerator.getSafeKey(key);
+        printThis("get safeKey=${safeKey}")
         var result: File? = null
         // It is possible that the there will be a put in between these two gets. If so that shouldn't
         // be a problem because we will always put the same value at the same key so our input streams
@@ -57,6 +58,7 @@ class DiskLruCacheWrapper (val directory:File , val maxSize:Long ): DiskCache {
         printThis("put writer=${writer.javaClass.simpleName}")
         try {
             val safeKey = safeKeyGenerator.getSafeKey(key!!);
+            printThis("put safeKey=${safeKey}")
             // We assume we only need to put once, so if data was written while we were trying to get
             // the lock, we can simply abort.
             val diskCache = getDiskCache()

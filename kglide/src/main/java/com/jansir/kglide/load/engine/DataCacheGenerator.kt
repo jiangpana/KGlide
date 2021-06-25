@@ -9,7 +9,8 @@ import java.io.File
 
 //cacheKeys = helper.getCacheKeys()
 class DataCacheGenerator(
-    val cacheKeys: List<Key> = emptyList(), val helper: DecodeHelper<*>,
+    val helper: DecodeHelper<*>,
+    var cacheKeys: List<Key> = helper.getCacheKeys(),
     val cb: DataFetcherGenerator.FetcherReadyCallback
 ) : DataFetcherGenerator, DataFetcher.DataCallback<Any?> {
 
