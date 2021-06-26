@@ -3,6 +3,8 @@ package com.jansir.kglide
 import android.content.Context
 import android.widget.ImageView
 import com.jansir.kglide.ext.isOnMainThread
+import com.jansir.kglide.ext.printThis
+import com.jansir.kglide.load.resource.bitmap.DownsampleStrategy
 import com.jansir.kglide.request.BaseRequestOptions
 import com.jansir.kglide.request.Request
 import com.jansir.kglide.request.RequestListener
@@ -33,6 +35,7 @@ class RequestBuilder<TranscodeType>(
     fun into(view: ImageView): ViewTarget<ImageView, TranscodeType> {
         require(isOnMainThread()) { "must load on main thread" }
         val requestOptions: BaseRequestOptions<*> = this
+        printThis("DownsampleStrategy =${getOptions().get<DownsampleStrategy>(DownsampleStrategy.OPTION)!!.javaClass.simpleName}")
         if (!requestOptions.isTransformationSet() && requestOptions.isTransformationAllowed()
             && view.scaleType != null
         ) {

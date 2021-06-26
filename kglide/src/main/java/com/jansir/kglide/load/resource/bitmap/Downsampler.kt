@@ -3,7 +3,7 @@ package com.jansir.kglide.load.resource.bitmap
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import com.jansir.kglide.ext.printThis
-import com.jansir.kglide.load.Options
+import com.jansir.kglide.load.*
 import com.jansir.kglide.load.engine.Resource
 import com.jansir.kglide.load.engine.bitmap_recycle.ArrayPool
 import com.jansir.kglide.load.engine.bitmap_recycle.BitmapPool
@@ -15,6 +15,16 @@ import java.io.InputStream
 class Downsampler(
     val bitmapPool: BitmapPool, val byteArrayPool: ArrayPool
 ) {
+
+    companion object{
+        val DECODE_FORMAT = Option.memory(
+            "com.bumptech.glide.load.resource.bitmap.Downsampler.DecodeFormat", DecodeFormat_DEFAULT
+        )
+        val PREFERRED_COLOR_SPACE = Option.memory(
+            "com.bumptech.glide.load.resource.bitmap.Downsampler.PreferredColorSpace", PreferredColorSpace.SRGB
+        )
+        val DOWNSAMPLE_STRATEGY =DownsampleStrategy.OPTION;
+    }
     fun handles(source: InputStream): Boolean {
         return true
     }

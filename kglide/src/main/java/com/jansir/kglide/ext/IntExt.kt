@@ -12,3 +12,4 @@ fun Int.set(flag: Int): Int {
 fun Int.unSet(flag: Int): Int {
     return this and flag.inv()
 }
+

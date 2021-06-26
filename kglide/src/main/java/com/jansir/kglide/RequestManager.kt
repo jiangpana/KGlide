@@ -17,7 +17,7 @@ class RequestManager(
     val lifecycle: Lifecycle,
     val requestManagerTreeNode: RequestManagerTreeNode,
     val context: Context
-) : LifecycleListener, ModelTypes<RequestBuilder<Drawable>> {
+) : LifecycleListener, ModelTypes<RequestBuilder<Drawable>>{
     private val addSelfToLifecycle = Runnable { lifecycle.addListener(this@RequestManager) }
     private val mainHandler = Handler(Looper.getMainLooper())
     private val targetTracker = TargetTracker()
@@ -31,6 +31,7 @@ class RequestManager(
     }
 
     override fun onStart() {
+
     }
 
     override fun onStop() {
