@@ -18,4 +18,12 @@ class RequestTracker {
         return isPaused
     }
 
+    fun restartRequests() {
+
+    }
+
+    fun clearRequests(){
+
+    }
+
 }

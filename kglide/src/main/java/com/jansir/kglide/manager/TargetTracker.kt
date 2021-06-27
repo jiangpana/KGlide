@@ -14,4 +14,7 @@ class TargetTracker : LifecycleListener{
     override fun onDestroy() {
     }
 
+    fun clear(){
+
+    }
 }

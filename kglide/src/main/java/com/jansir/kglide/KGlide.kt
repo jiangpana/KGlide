@@ -90,6 +90,10 @@ class KGlide(
         return glideContext
     }
 
+    fun unregisterRequestManager(requestManager: RequestManager) {
+
+    }
+
     companion object {
         private var instance: KGlide? = null
 
