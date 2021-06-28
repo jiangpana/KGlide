@@ -208,5 +208,9 @@ class SingleRequest<R> private constructor(
     override fun onLoadFailed(e: Exception) {
     }
 
+    override fun getLock(): Any {
+        return requestLock
+    }
+
 
 }

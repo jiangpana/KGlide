@@ -30,5 +30,14 @@ class EngineResource<Z>(
     }
 
     override fun recycle() {
+        isRecycled=true
+    }
+
+    private var acquired = 0
+    private var isRecycled = false
+    @Synchronized
+    fun acquire() {
+        check(!isRecycled) { "Cannot acquire a recycled resource" }
+        ++acquired
     }
 }

@@ -31,14 +31,11 @@ class EngineJob<R>(
     private var useUnlimitedSourceGeneratorPool: Boolean = false
     private var useAnimationPool: Boolean = false
     private var onlyRetrieveFromCache: Boolean = false
-    val cbs =
-        ResourceCallbacksAndExecutors()
+    val cbs = ResourceCallbacksAndExecutors()
     private var hasLoadFailed = false
     private var hasResource = false
     private var isCancelled = false
-    private val pendingCallbacks =
-        AtomicInteger()
-
+    private val pendingCallbacks = AtomicInteger()
 
     @Synchronized
     fun removeCallback(cb: ResourceCallback) {
@@ -101,7 +98,6 @@ class EngineJob<R>(
         return true
     }
 
-
     override fun onResourceReady(resource: Resource<R>?, dataSource: DataSource?) {
         printThis(" onResourceReady")
         synchronized(this) {
@@ -112,11 +108,9 @@ class EngineJob<R>(
     }
 
     private fun notifyCallbacksOfResult() {
-        cbs.forEach {
-            it.executor.execute{
-                printThis(" it.executor.execute")
-                it.cb.onResourceReady(resource!!,dataSource)
-            }
+        val copy = cbs.copy()
+        copy.forEach {
+            it.executor.execute(CallResourceReady(it.cb))
         }
     }
 
@@ -124,8 +118,6 @@ class EngineJob<R>(
     }
 
     override fun reschedule(job: DecodeJob<*>?) {
-        // Even if the job is cancelled here, it still needs to be scheduled so that it can clean itself
-        // up.
         getActiveSourceExecutor().execute(job)
     }
 
@@ -140,8 +132,10 @@ class EngineJob<R>(
         return if (useUnlimitedSourceGeneratorPool) sourceUnlimitedExecutor else if (useAnimationPool) animationExecutor else sourceExecutor
     }
 
-    class ResourceCallbacksAndExecutors : Iterable<ResourceCallbackAndExecutor> {
-        private val callbacksAndExecutors = ArrayList<ResourceCallbackAndExecutor>(2)
+    class ResourceCallbacksAndExecutors(
+        val callbacksAndExecutors: MutableList<ResourceCallbackAndExecutor> = ArrayList(2)
+    ) : Iterable<ResourceCallbackAndExecutor> {
+
         override fun iterator(): Iterator<ResourceCallbackAndExecutor> {
             return callbacksAndExecutors.iterator()
         }
@@ -177,6 +171,9 @@ class EngineJob<R>(
         private fun defaultCallbackAndExecutor(cb: ResourceCallback): ResourceCallbackAndExecutor? {
             return ResourceCallbackAndExecutor(cb, Executors.directExecutor())
         }
+
+        fun copy(): ResourceCallbacksAndExecutors =
+            ResourceCallbacksAndExecutors(ArrayList(callbacksAndExecutors));
     }
 
     class ResourceCallbackAndExecutor(val cb: ResourceCallback, val executor: Executor) {
@@ -193,4 +190,27 @@ class EngineJob<R>(
         }
     }
 
+    fun callCallbackOnResourceReady(cb: ResourceCallback) {
+        try {
+            cb.onResourceReady(engineResource!!, dataSource)
+        } catch (t: Throwable) {
+            throw t
+        }
+    }
+
+    inner class CallResourceReady(val cb: ResourceCallback) : Runnable {
+        override fun run() {
+            synchronized(cb.getLock()) {
+                synchronized(this@EngineJob) {
+                    if (cbs.contains(cb)) {
+                        // Acquire for this particular callback.
+                        engineResource?.acquire()
+                        callCallbackOnResourceReady(cb)
+                        removeCallback(cb)
+                    }
+                }
+            }
+        }
+
+    }
 }

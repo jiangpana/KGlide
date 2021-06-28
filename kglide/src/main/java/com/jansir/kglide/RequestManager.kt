@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import com.jansir.kglide.ext.isOnMainThread
 import com.jansir.kglide.manager.*
+import com.jansir.kglide.request.Request
 import com.jansir.kglide.request.target.Target
 
 
@@ -39,23 +40,30 @@ class RequestManager(
         targetTracker.onStart()
     }
 
-    private fun resumeRequests() {
-
-    }
 
     override fun onStop() {
         pauseRequests()
         targetTracker.onStop()
     }
 
-    private fun pauseRequests() {
+    private fun resumeRequests() {
+        requestTracker.resumeRequests()
+    }
 
+
+    private fun pauseRequests() {
+        requestTracker.pauseRequests()
+    }
+
+    @Synchronized
+    fun pauseAllRequests() {
+        requestTracker.pauseAllRequests()
     }
 
     override fun onDestroy() {
-//        for (target in targetTracker.getAll()) {
-//            clear(target!!)
-//        }
+        for (target in targetTracker.getAll()) {
+            clear(target)
+        }
         targetTracker.onDestroy()
         targetTracker.clear()
         requestTracker.clearRequests()
@@ -63,6 +71,26 @@ class RequestManager(
         lifecycle.removeListener(connectivityMonitor!!)
         mainHandler.removeCallbacks(addSelfToLifecycle)
         kGlide.unregisterRequestManager(this)
+    }
+
+
+    @Synchronized
+    fun track(target: Target<*>, request: Request) {
+        targetTracker.track(target)
+        requestTracker.runRequest(request)
+    }
+
+    @Synchronized
+    fun untrack(target:Target<*>): Boolean {
+        val request = target.getRequest() ?: return true
+        // If the Target doesn't have a request, it's already been cleared.
+        return if (requestTracker.clearAndRemove(request)) {
+            targetTracker.untrack(target)
+            target.setRequest(null)
+            true
+        } else {
+            false
+        }
     }
 
     override fun load(string: String): RequestBuilder<Drawable> {
@@ -85,7 +113,6 @@ class RequestManager(
     private fun untrackOrDelegate(target: Target<*>) {
 
     }
-
 
     inner class RequestManagerConnectivityListener(val requestTracker:RequestTracker): ConnectivityMonitor.ConnectivityListener {
         override fun onConnectivityChanged(isConnected: Boolean) {

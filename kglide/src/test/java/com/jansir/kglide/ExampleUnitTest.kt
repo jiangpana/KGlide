@@ -3,6 +3,7 @@ package com.jansir.kglide
 import org.junit.Test
 import java.nio.charset.Charset
 import java.security.MessageDigest
+import java.util.ArrayList
 import kotlin.text.Charsets.UTF_8
 
 /**
@@ -11,6 +12,7 @@ import kotlin.text.Charsets.UTF_8
  * See [testing documentation](http://d.android.com/tools/testing).
  */
 class ExampleUnitTest {
+
     @Test
     fun addition_isCorrect() {
 
@@ -22,12 +24,6 @@ class ExampleUnitTest {
             Person.Women  -> print("Women")
         }
 
-      val messageDigest =  MessageDigest.getInstance("SHA-256")
-        messageDigest.update("ggdsgdfgdyreyyerytyrty".toByteArray(UTF_8))
-        messageDigest.update("ggdsgdfgdyreyyerytyrty".toByteArray(UTF_8))
-        messageDigest.update("ggdsgdfgdyreyyerytyrty".toByteArray(UTF_8))
-        messageDigest.update("ggdsgdfgdyreyyerytyrty".toByteArray(UTF_8))
-        println("messageDigest = ${messageDigest.digest().toString(UTF_8)}")
     }
 
 }
@@ -38,3 +34,9 @@ enum class Person {
     Women ,
     Man
 }
+
+//箫声咽(yè)，秦娥梦断秦楼月。秦楼月，年年柳色，灞陵伤别。
+//乐游原上清秋节，咸阳古道音尘绝。音尘绝，西风残照，汉家陵阙。
+
+
+//舒适圈中思进取.思进取,回首往昔,更进一步

@@ -67,8 +67,12 @@ class RequestBuilder<TranscodeType>(
     ): Y {
         require(isModelSet) { "You must call #load() before calling #into()" }
         val request = buildRequest(target, targetListener, options, callbackExecutor);
+        if (target.getRequest()!=null){
+
+        }
         requestManager.clear(target)
-        request.begin()
+        target.setRequest(request)
+        requestManager.track(target, request)
         return target
     }
 

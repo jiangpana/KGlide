@@ -12,15 +12,22 @@ import java.util.*
 
 abstract class ViewTarget<T : View, Z>(override val view: T) : Target<Z>, Transition.ViewAdapter {
 
-    private var request: Request? = null
 
-     val sizeDeterminer by lazy {
+    private var isTagUsedAtLeastOnce = false
+    private val tagId: Int = com.jansir.kglide.R.id.glide_custom_view_target_tag
+
+    val sizeDeterminer by lazy {
         SizeDeterminer(view)
     }
 
 
     override fun setRequest(request: Request?) {
-        this.request = request
+        setTag(request)
+    }
+
+    private fun setTag(tag: Any?) {
+        isTagUsedAtLeastOnce = true
+        view.setTag(tagId, tag)
     }
 
     fun waitForLayout(): ViewTarget<T, Z> {
@@ -29,7 +36,22 @@ abstract class ViewTarget<T : View, Z>(override val view: T) : Target<Z>, Transi
     }
 
     override fun getRequest(): Request? {
+        val tag: Any? = getTag()
+        var request: Request? = null
+        if (tag != null) {
+            request = if (tag is Request) {
+                tag as Request
+            } else {
+                throw IllegalArgumentException(
+                    "You must not call setTag() on a view Glide is targeting"
+                )
+            }
+        }
         return request
+    }
+
+    private fun getTag(): Any? {
+        return view.getTag(tagId)
     }
 
     override fun onLoadStarted(placeholder: Drawable?) {
@@ -189,6 +211,7 @@ abstract class ViewTarget<T : View, Z>(override val view: T) : Target<Z>, Transi
 
 
     }
+
 
 
 }
