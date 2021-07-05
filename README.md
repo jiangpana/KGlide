@@ -61,6 +61,7 @@ RequestManagerRetriever#supportFragmentGet方法中 , 构建SupportRequestManage
         parentHint: Fragment?,
         isParentVisible: Boolean
     ): RequestManager {
+       //构建SupportRequestManagerFragment用于监听生命周期
         val current = getSupportRequestManagerFragment(fm, parentHint, isParentVisible);
         var requestManager = current.getRequestManager()
         if (requestManager == null) {
@@ -68,6 +69,7 @@ RequestManagerRetriever#supportFragmentGet方法中 , 构建SupportRequestManage
             requestManager = factory.build(
                 glide, current.getGlideLifecycle(), current.getRequestManagerTreeNode(), context
             )
+            //设置RequestManager
             current.setRequestManager(requestManager)
         }
         return requestManager
@@ -124,6 +126,11 @@ SingleRequest#obtain方法中构建request , 泛型R 默认为Drawable.  如果�
 ```
   //callbackExecutor为在主线程执行的Executor
   //target 默认为 DrawableImageViewTarget
+  //model 为 string ,图片请求地址
+  //transcodeClass 为 Drawable.class
+  //overrideWidth 解码时候需要的图片宽
+  //overrideHeight 解码时候需要的图片高
+  //priority 加载的优先级
     fun <R> obtain(
             context: Context,
             glideContext: GlideContext,
@@ -223,6 +230,7 @@ SourceGenerator#startNext , 如果支持data缓存就处理缓存
             dataToCache = null
             cacheData(data)
         }
+        //缓存成功,从DataCacheGenerator进行处理,如果处理成功返回true
         if (sourceCacheGenerator != null && sourceCacheGenerator!!.startNext()) {
             return true
         }
@@ -255,10 +263,12 @@ HttpUrlFetcher#loadData ,通过HttpURLConnection 下载图片
         urlConnection.instanceFollowRedirects = false
         urlConnection.connect()
         stream = urlConnection.inputStream
+        //下载图片过程中取消则返回null
         if (isCancelled) {
             return null
         }
         val statusCode = urlConnection.responseCode;
+        //请求成功则返回数据
         if (isHttpOk(statusCode)) {
             return getStreamForSuccessfulRequest(urlConnection)
         }else if (isHttpRedirect(statusCode)){
@@ -305,14 +315,16 @@ Downsampler#decode() , 通过inTargetDensity和inDensity 方式减少内存占�
         ris.reset()
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeStream(ris,null,options)
+        //获取源图片的宽高
         options.inJustDecodeBounds = false;
         val sourceHeight =options.outHeight
         val sourceWidth =options.outWidth
         printThis("sourceHeight =$sourceHeight sourceWidth =$sourceWidth")
+        //通过inTargetDensity,inDensity,inScaled方式优化bitmap占用内存大小
         options.inTargetDensity=width
         options.inDensity=sourceWidth
         options.inScaled=true
-        //把流回到起点
+        //把流回到起点,重读
         ris.reset()
         bitmap = BitmapFactory.decodeStream(ris,null,options)!!
         printThis("bitmap size = ${Util.getBitmapByteSize(bitmap)}")
@@ -369,6 +381,7 @@ EngineJob#CallResourceReady , 先调用 cb.onResourceReady(engineResource!!, dat
                         // Acquire for this particular callback.
                         engineResource?.acquire()
                         callCallbackOnResourceReady(cb)
+                        //移除监听,防止内存泄漏
                         removeCallback(cb)
                     }
                 }
@@ -415,7 +428,7 @@ DecodeJob#onResourceDecoded
                 encodeStrategy
             )
         ) {
-            //构建缓存key
+            //构建用于缓存的key
             val key: Key
             when (encodeStrategy) {
                 EncodeStrategy.SOURCE -> key = DataCacheKey(currentSourceKey!!, signature!!);
@@ -458,7 +471,7 @@ DecodeJob#notifyEncodeAndRelease
     }
 ```
 
-### 三、总结
+### 四、总结
 本文首先解读各主要类的功能以及方法执行流程,然后对框架进行解读.
 
 用kotlin语言精简代码进行仿写, 希望能更加理解glide源码设计精髓,但glide的源码所能获取的营养远不止如此.
