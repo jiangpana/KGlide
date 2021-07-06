@@ -25,13 +25,14 @@ class HttpUrlFetcher(val glideUrl: KGlideUrl) : DataFetcher<InputStream> {
     private val connectionFactory = DefaultHttpUrlConnectionFactory()
     private var urlConnection by Delegates.notNull<HttpURLConnection>()
     override fun loadData(priority: Priority, callback: DataFetcher.DataCallback<in InputStream>) {
-        println("HttpUrlFetcher priority")
+        println("HttpUrlFetcher loadData")
         try {
             val result = loadDataWithRedirects(glideUrl.toURL(), 0, null, glideUrl.getHeaders())
             result?.let {
                 callback.onDataReady(it)
             }
         } catch (e: Exception) {
+            e.printStackTrace()
             callback.onLoadFailed(e)
         } finally {
         }
@@ -44,10 +45,10 @@ class HttpUrlFetcher(val glideUrl: KGlideUrl) : DataFetcher<InputStream> {
         check(redirects < MAXIMUM_REDIRECTS){"Too many (> \" + $MAXIMUM_REDIRECTS + \") redirects!"}
         urlConnection = connectionFactory.build(url)
         // 添加头部
-        for ((key, value) in headers) {
+/*        for ((key, value) in headers) {
             printThis("header , key =$key value=$value")
             urlConnection.addRequestProperty(key, value)
-        }
+        }*/
 
         urlConnection.connectTimeout = DEFAULT_TIME_OUT
         urlConnection.readTimeout = DEFAULT_TIME_OUT

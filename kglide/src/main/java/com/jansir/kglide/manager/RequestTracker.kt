@@ -1,5 +1,6 @@
 package com.jansir.kglide.manager
 
+import com.jansir.kglide.ext.printThis
 import com.jansir.kglide.request.Request
 import com.jansir.kglide.util.Util
 import java.util.*
@@ -39,6 +40,7 @@ class RequestTracker {
             if (!request.isComplete() && !request.isCleared()) {
                 request.clear()
                 if (!isPaused) {
+                    printThis("restartRequests begin")
                     request.begin()
                 } else {
                     pendingRequests.add(request)

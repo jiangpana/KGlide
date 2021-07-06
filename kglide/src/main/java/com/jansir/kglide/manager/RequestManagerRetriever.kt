@@ -33,8 +33,13 @@ class RequestManagerRetriever : Handler.Callback {
         Handler(Looper.getMainLooper(), this /* Callback */);
     }
 
-    override fun handleMessage(msg: Message): Boolean {
+    override fun handleMessage(message: Message): Boolean {
         val handled = true
+        when (message.what) {
+            ID_REMOVE_SUPPORT_FRAGMENT_MANAGER -> {
+                pendingSupportRequestManagerFragments.remove(message.obj as FragmentManager);
+            }
+        }
         return handled
     }
 
@@ -130,6 +135,10 @@ class RequestManagerRetriever : Handler.Callback {
                 }
                 pendingSupportRequestManagerFragments[fm] = current
                 fm.beginTransaction().add(current, FRAGMENT_TAG).commitAllowingStateLoss()
+                handler.obtainMessage(
+                    ID_REMOVE_SUPPORT_FRAGMENT_MANAGER,
+                    fm
+                ).sendToTarget()
             }
         }
         return current as SupportRequestManagerFragment

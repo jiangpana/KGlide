@@ -47,7 +47,6 @@ class KGlideUrl(val url: String) : Key {
                 ALLOWED_URI_CHARS
             )
         }
-        printThis("unsafeStringUrl = $url")
         printThis("safeStringUrl = $safeStringUrl")
         return safeStringUrl
     }

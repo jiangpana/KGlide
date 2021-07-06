@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.os.Looper
 import com.jansir.kglide.ext.isOnMainThread
+import com.jansir.kglide.ext.printThis
 import com.jansir.kglide.manager.*
 import com.jansir.kglide.request.Request
 import com.jansir.kglide.request.target.Target
@@ -36,12 +37,14 @@ class RequestManager(
     }
 
     override fun onStart() {
+        printThis("onStart")
         resumeRequests()
         targetTracker.onStart()
     }
 
 
     override fun onStop() {
+        printThis("onStop")
         pauseRequests()
         targetTracker.onStop()
     }
@@ -61,6 +64,7 @@ class RequestManager(
     }
 
     override fun onDestroy() {
+        printThis("onDestroy")
         for (target in targetTracker.getAll()) {
             clear(target)
         }

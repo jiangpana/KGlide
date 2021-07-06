@@ -26,17 +26,17 @@ class ActivityFragmentLifecycle :Lifecycle {
         lifecycleListeners.remove(listener)
     }
 
-    fun onPause() {
-        isStarted = true
+    fun onStop() {
+        isStarted = false
         for (lifecycleListener in Util.getSnapshot(lifecycleListeners)) {
-            lifecycleListener.onStart()
+            lifecycleListener.onStop()
         }
     }
 
     fun onStart() {
-        isStarted = false
+        isStarted = true
         for (lifecycleListener in Util.getSnapshot(lifecycleListeners)) {
-            lifecycleListener.onStop()
+            lifecycleListener.onStart()
         }
     }
 

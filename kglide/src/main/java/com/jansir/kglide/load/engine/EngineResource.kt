@@ -8,7 +8,7 @@ class EngineResource<Z>(
     val isMemoryCacheable: Boolean,
     val isRecyclable: Boolean,
     val key: Key,
-    val listener: ResourceListener
+    val listener: ResourceListener?
 ) : Resource<Z> {
 
     interface ResourceListener {

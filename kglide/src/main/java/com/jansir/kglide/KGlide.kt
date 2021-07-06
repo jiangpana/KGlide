@@ -30,7 +30,7 @@ import java.io.InputStream
 
 
 class KGlide(
-    val context: Context,
+     context: Context,
     val engine: Engine,
     val memoryCache: MemoryCache,
     val requestManagerRetriever: RequestManagerRetriever,

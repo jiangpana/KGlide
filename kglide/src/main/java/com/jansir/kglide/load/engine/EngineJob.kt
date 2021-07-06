@@ -26,7 +26,7 @@ class EngineJob<R>(
     private var engineResource: EngineResource<*>? = null
     private var resource: Resource<*>? = null
     private var dataSource: DataSource? = null
-    private lateinit var isCacheable: Any
+    private  var isCacheable: Boolean =false
     private var key: Key? = null
     private var useUnlimitedSourceGeneratorPool: Boolean = false
     private var useAnimationPool: Boolean = false
@@ -37,6 +37,9 @@ class EngineJob<R>(
     private var isCancelled = false
     private val pendingCallbacks = AtomicInteger()
 
+    private val engineResourceFactory =EngineResourceFactory(
+
+    )
     @Synchronized
     fun removeCallback(cb: ResourceCallback) {
         cbs.remove(cb)
@@ -108,6 +111,9 @@ class EngineJob<R>(
     }
 
     private fun notifyCallbacksOfResult() {
+        engineResource =
+            engineResourceFactory.build(resource!!, isCacheable, key, resourceListener)
+
         val copy = cbs.copy()
         copy.forEach {
             it.executor.execute(CallResourceReady(it.cb))
@@ -212,5 +218,18 @@ class EngineJob<R>(
             }
         }
 
+    }
+
+    internal class EngineResourceFactory {
+        fun <R> build(
+            resource: Resource<R>,
+            isMemoryCacheable: Boolean,
+            key: Key?,
+            listener: EngineResource.ResourceListener?
+        ): EngineResource<R> {
+            return EngineResource(
+                resource, isMemoryCacheable,  /*isRecyclable=*/true, key!!, listener
+            )
+        }
     }
 }
