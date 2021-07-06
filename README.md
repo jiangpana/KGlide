@@ -1,10 +1,15 @@
 # KGlide
-用kotlin语言精简大量代码仿写glide
+用kotlin语言精简大量代码仿写glide 
+
+使用方式 
+```
+        KGlide.with(this).load(image_url).into(findViewById(R.id.imageView1))
+```
 
 ### 一、前言 
 Glide是一个极其著名的Android的快速高效的开源媒体管理和图像加载框架，它将媒体解码、内存和磁盘缓存以及资源池打包成一个简单易用的界面。源码地址 [https://github.com/bumptech/glide](https://github.com/bumptech/glide) 
 
-古人云：“纸上得来终觉浅，绝知此事要躬行”。不动手写只看代码进行分析,印象始终不深刻,不能更进一步了解Glide框架设计精髓.
+Glide的设计十分巧妙,古人云：“纸上得来终觉浅，绝知此事要躬行”。不动手写只看代码进行分析,印象始终不深刻,不能更进一步了解Glide框架设计精髓.
 
 所以打算使用Kotlin语言进行仿写,GitHub地址[https://github.com/jiangpana/KGlide](https://github.com/jiangpana/KGlide) 
 
@@ -477,6 +482,5 @@ DecodeJob#notifyEncodeAndRelease
 用kotlin语言精简代码进行仿写, 希望能更加理解glide源码设计精髓,但glide的源码所能获取的营养远不止如此.
 
 每看一遍又会有不一样的理解, 让人受益匪浅,在此对Glide开源工作者表示崇高的敬意和感谢。
-
 
 
